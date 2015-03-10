@@ -10,6 +10,10 @@
 #import "FGInternal.h"
 #import "FGViewPool.h"
 
+static void * WithFrameMethodKey = &WithFrameMethodKey;
+static NSString *WithFrameDataKey = @"FGViewControllerWithFrameDataKey";
+static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedDataKey";
+
 @interface FGViewController ()
 
 @property (copy) FGOnGuiBlock onGuiBlock;
@@ -20,8 +24,6 @@
 @property (nonatomic, assign) BOOL currentFrameAnimated;
 
 @property (nonatomic, strong) FGViewPool *pool;
-
-- (void) withFrame: (CGRect) rect animated: (BOOL) animated;
 
 @end
 
@@ -45,24 +47,24 @@
     }];
 }
 
-+ (void)withFrame:(CGRect)rect
++ (void) withFrame:(CGRect)rect
 {
     [self withFrame: rect animated: false];
 }
 
-+ (void)withFrame:(CGRect)rect animated:(BOOL)animated
++ (void) withFrame:(CGRect)rect animated:(BOOL)animated
 {
-    id ctx = [FastGui context];
-    if ([ctx isKindOfClass:[FGViewController class]]) {
-        FGViewController *ctrl = ctx;
-        [ctrl withFrame: rect animated:animated];
-    }
+    [FastGui customData:WithFrameMethodKey data:@{
+        WithFrameDataKey: [NSValue valueWithCGRect: rect],
+        WithFrameAnimatedDataKey: [NSNumber numberWithBool: animated]}];
 }
 
 @end
 
 
 @implementation FGViewController
+
+@synthesize parentContext;
 
 @synthesize readyForPushViewControllers;
 
@@ -73,9 +75,9 @@
 - (void) reloadGui
 {
     [self.pool prepareUpdateViews];
-    [FastGui callWithContext:self block:^{
+    [FastGui callOnGui:^{
         [self onGui];
-    }];
+    } withContext:self];
     [self.pool finishUpdateViews:^(UIView * view) {
         [self.view addSubview:view];
     } needRemove:^(UIView * view) {
@@ -111,10 +113,15 @@
     }
 }
 
-- (void) withFrame: (CGRect) rect animated: (BOOL) animated;
+- (id)customData:(void *)key data:(NSDictionary *)data
 {
-    self.currentFrame = rect;
-    self.currentFrameAnimated = animated;
+    if (key == WithFrameMethodKey) {
+        CGRect frame = ((NSValue *)data[WithFrameDataKey]).CGRectValue;
+        BOOL animated = ((NSNumber *)data[WithFrameAnimatedDataKey]).boolValue;
+        self.currentFrame = frame;
+        self.currentFrameAnimated = animated;
+    }
+    return nil;
 }
 
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock

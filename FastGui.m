@@ -5,100 +5,80 @@
 //  Created by 易元 白 on 15/3/1.
 //
 //
-
+#import <objc/runtime.h>
 #import "FastGUI.h"
 #import "FGInternal.h"
 
+static void * ParentContextPropertyKey = &ParentContextPropertyKey;
+
 @interface FastGui ()
 
-@property (nonatomic, strong) id<FGContext> context;
++ (void) setContext: (id<FGContext>) context;
 
 @end
 
 @implementation FastGui
 
-@synthesize context;
+static id<FGContext> _context = nil;
 
-static FastGui *instance;
-
-+ (void)initialize
++ (void) setContext: (id<FGContext>) context
 {
-    static BOOL initialized = NO;
-    if(!initialized)
-    {
-        initialized = YES;
-        instance = [[FastGui alloc] init];
+    _context = context;
+}
+
++ (id<FGContext>) context
+{
+    return _context;
+}
+
++ (void) pushContext:(id<FGContext>)context
+{
+    context.parentContext = self.context;
+    self.context = context;
+}
+
++ (void) popContext
+{
+    if (self.context != nil) {
+        self.context = self.context.parentContext;
     }
 }
 
-+ (id<FGContext>)context
++ (void) callOnGui: (FGOnGuiBlock) onGui withContext: (id<FGContext>) context
 {
-    return instance.context;
-}
-
-+ (void) callWithContext:(id<FGContext>)context block:(FGOnGuiBlock)block
-{
-    id<FGContext> old = instance.context;
-    @try {
-        instance.context = context;
-        block();
-    }
-    @finally {
-        instance.context = old;
-    }
+    //dispatch_async(dispatch_get_main_queue(), ^{
+        assert(self.context == nil);
+        [self pushContext:context];
+        @try {
+            onGui();
+        }
+        @finally {
+            [self popContext];
+        }
+        assert(self.context == nil);
+    //});
 }
 
 + (void) customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
 {
-    [instance.context customViewControllerWithReuseId:reuseId initBlock:initBlock];
+    [self.context customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
 + (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock
 {
-    return [instance.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock];
+    return [self.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock];
 }
 
-
-
-
-+ (void) viewController: (FGOnGuiBlock) onGui
++ (id) customData:(void*) key data:(NSDictionary *)data
 {
-    
+    return [self.context customData:key data:data];
 }
 
-+ (void) navigationController: (FGOnGuiBlock) onGui
++ (void) reloadGui
 {
-
-}
-
-+ (void) tableViewController: (FGOnGuiBlock) onGui
-{
-    
-}
-
-+ (BOOL) tableCellSection: (NSString *) title
-{
-    return false;
-}
-
-+ (BOOL) tableCell: (NSString *) title
-{
-    return false;
-}
-
-+ (void) alert: (NSString *) content
-{
-    
-}
-
-+ (BOOL) confirm: (NSString *) content
-{
-    return false;
-}
-
-+ (NSString *) prompt: (NSString *) content
-{
-    return nil;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.context reloadGui];
+    });
 }
 
 @end

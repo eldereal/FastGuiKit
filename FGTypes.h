@@ -12,6 +12,8 @@ typedef void(^ FGVoidBlock)();
 
 typedef id(^ FGIdBlock)();
 
+typedef id(^ FGStyleBlock)();
+
 typedef FGVoidBlock FGOnGuiBlock;
 
 typedef UIViewController * (^FGInitCustomViewControllerBlock) (UIViewController * reuseViewController);

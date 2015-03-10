@@ -15,6 +15,8 @@
 
 @required
 
+@property (nonatomic, strong) id<FGContext> parentContext;
+
 /**
  * present a custom view controller if possible.
  */
@@ -24,6 +26,8 @@
  * display a custom view with context's layout.
  */
 - (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock;
+
+- (id)customData:(void*) key data:(NSDictionary *)data;
 
 - (void) reloadGui;
 

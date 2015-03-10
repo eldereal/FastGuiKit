@@ -27,11 +27,11 @@
 
 + (BOOL) tabBarItem: (NSString *)name iconNamed: (NSString *)iconName
 {
-    id ctx = [FastGui context];
-    if ([ctx isKindOfClass:[FGTabBarController class]]) {
-        FGTabBarController *ctrl = ctx;
-        return [ctrl tabBarItem:name iconNamed:iconName reuseId:[FGInternal callerPositionAsReuseId]];
-    }
+//    id ctx = [FastGui context];
+//    if ([ctx isKindOfClass:[FGTabBarController class]]) {
+//        FGTabBarController *ctrl = ctx;
+//        return [ctrl tabBarItem:name iconNamed:iconName reuseId:[FGInternal callerPositionAsReuseId]];
+//    }
     return false;
 }
 
@@ -53,11 +53,13 @@
 
 @implementation FGTabBarController
 
+@synthesize parentContext;
+
 - (void)reloadGui
 {
-    [FastGui callWithContext:self block:^{
+    [FastGui callOnGui:^{
         [self onGui];
-    }];
+    } withContext:self];
 }
 
 - (void)viewDidLoad
@@ -82,9 +84,9 @@
     
 }
 
-- (void)customViewWithReuseId:(NSNumber *)reuseId initBlock:(FGInitCustomViewBlock)initBlock
+- (id)customViewWithReuseId:(NSNumber *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock
 {
-    
+    return nil;
 }
 
 - (BOOL)tabBarItem:(NSString *)name iconNamed:(NSString *)iconName reuseId:(NSString *)reuseId

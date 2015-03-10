@@ -12,15 +12,12 @@
 
 @interface FastGui : NSObject
 
-/**
- * get current gui context
- */
-+ (id<FGContext>) context;
++ (void) callOnGui: (FGOnGuiBlock) onGui withContext: (id<FGContext>) context;
 
-/**
- * call onGui callback with given context
- */
-+ (void) callWithContext: (id<FGContext>) context block: (FGOnGuiBlock) block;
+
++ (void) pushContext: (id<FGContext>) context;
+
++ (void) popContext;
 
 /**
  * present a custom view controller if possible.
@@ -30,20 +27,11 @@
 /**
  * display a custom view with context's layout.
  */
-+ (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock;
++ (id) customViewWithReuseId: (NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock;
 
++ (id) customData:(void*) key data:(NSDictionary *)data;
 
-
-
-
-
-+ (void) navigationController: (FGOnGuiBlock) onGui;
-
-+ (void) alert: (NSString *) content;
-
-+ (BOOL) confirm: (NSString *) content;
-
-+ (NSString *) prompt: (NSString *) content;
++ (void) reloadGui;
 
 
 @end

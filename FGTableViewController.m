@@ -15,6 +15,11 @@ typedef NS_ENUM(NSInteger, FGTableViewCellActions) {
     FGTableViewCellActionsSelect,
 };
 
+static void * TableSectionHeaderMethodKey = &TableSectionHeaderMethodKey;
+static void * TableSectionFooterMethodKey = &TableSectionFooterMethodKey;
+
+static NSString * TableSectionHeaderFooterTitleDataKey = @"FGTableViewControllerTableSectionHeaderFooterTitleDataKey";
+
 static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 
 
@@ -79,20 +84,12 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 
 + (void) tableSectionHeader: (NSString *) title
 {
-    id ctx = [FastGui context];
-    if ([ctx isKindOfClass:[FGTableViewController class]]) {
-        FGTableViewController *ctrl = ctx;
-        [ctrl tableSectionHeader: title];
-    }
+    [self customData:TableSectionHeaderMethodKey data:@{TableSectionHeaderFooterTitleDataKey: title}];
 }
 
 + (void) tableSectionFooter: (NSString *) title
 {
-    id ctx = [FastGui context];
-    if ([ctx isKindOfClass:[FGTableViewController class]]) {
-        FGTableViewController *ctrl = ctx;
-        [ctrl tableSectionFooter: title];
-    }
+    [self customData:TableSectionFooterMethodKey data:@{TableSectionHeaderFooterTitleDataKey: title}];
 }
 
 + (BOOL) tableCell:(NSString *)title
@@ -131,6 +128,8 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 
 @implementation FGTableViewController
 
+@synthesize parentContext;
+
 @synthesize readyForPushViewControllers;
 
 @synthesize items, oldItems;
@@ -139,26 +138,24 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 
 - (void)reloadGui
 {
-    NSPointerArray *temp = self.oldItems;
-    self.oldItems = self.items;
-    while (temp.count > 0) {
-        [temp removePointerAtIndex: 0];
-    }
-    self.items = temp;
-    [self.oldItems compact];
-    
-    [self.sections removeAllObjects];
-    self.currentSection = [NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], nil];
-    
-    [FastGui callWithContext:self block:^{
+    [FastGui callOnGui:^{
+        NSPointerArray *temp = self.oldItems;
+        self.oldItems = self.items;
+        while (temp.count > 0) {
+            [temp removePointerAtIndex: 0];
+        }
+        self.items = temp;
+        [self.oldItems compact];
+        
+        [self.sections removeAllObjects];
+        self.currentSection = [NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], nil];
         [self onGui];
-    }];
-    
-    if (currentSection.count > 2 || currentSection[0] != [NSNull null] || currentSection[1] != [NSNull null]) {
-        [sections addObject:currentSection];
-    }
-    
-    [self.tableView reloadData];
+        if (currentSection.count > 2 || currentSection[0] != [NSNull null] || currentSection[1] != [NSNull null]) {
+            [sections addObject:currentSection];
+        }
+        
+        [self.tableView reloadData];
+    } withContext:self];
 }
 
 - (void)viewDidLoad
@@ -188,6 +185,16 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
             printf("Unhandled exception: %s", [exception.description UTF8String]);
         }
     }
+}
+
+- (id)customData:(void *)key data:(NSDictionary *)data
+{
+    if (key == TableSectionHeaderMethodKey){
+        [self tableSectionHeader:data[TableSectionHeaderFooterTitleDataKey]];
+    }else if(key == TableSectionFooterMethodKey){
+        [self tableSectionFooter:data[TableSectionHeaderFooterTitleDataKey]];
+    }
+    return nil;
 }
 
 - (void) tableSectionHeader:(NSString *)title
