@@ -12,5 +12,6 @@
 #include "FastGui.h"
 #include "FGViewController.h"
 #include "FGBasicViews.h"
+#include "FGStyle.h"
 
 #endif

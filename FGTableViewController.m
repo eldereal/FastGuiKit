@@ -95,11 +95,12 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 + (BOOL) tableCell:(NSString *)title
 {
     NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    id ret = [FastGui customViewWithReuseId:reuseId initBlock:^UIView *(UIView *view, FGNotifyCustomViewResultBlock notify) {
+    id ret = [FastGui customViewWithClass: nil reuseId:reuseId initBlock:^UIView *(UIView *view, FGNotifyCustomViewResultBlock notify, FGStyleBlock applyStyle) {
         if (view == nil){
             printf("tableCell(%s): %s\n", [reuseId UTF8String], [title UTF8String]);
             view = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseId];
         }
+        applyStyle(view);
         UITableViewCell *cell = ((UITableViewCell *)view);
         //printf("reuse title: %s, actual title: %s\n", [cell.textLabel.text UTF8String], [title UTF8String]);
         
@@ -212,7 +213,7 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
     currentSection[1] = title;
 }
 
-- (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock
+- (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
     UIView *foundReuseView = nil;
     for (NSUInteger i = 0; i < self.oldItems.count; i++) {
@@ -228,7 +229,7 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
     __weak FGTableViewController *weakSelf = self;
     UIView *view = initBlock(foundReuseView, ^(){
         [weakSelf reloadGui];
-    });
+    }, applyStyleBlock);
     view.reuseId = reuseId;
     [self.items addPointer:(__bridge void *)(view)];
     
@@ -295,6 +296,11 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
     [cell.notifyHolder notify];
     cell.actionResult = FGTableViewCellActionsNone;
     return nil;
+}
+
+- (void)styleSheet
+{
+    
 }
 
 @end

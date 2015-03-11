@@ -22,7 +22,7 @@
 
 - (void) prepareUpdateViews;
 
-- (UIView *) updateView: (NSString *) reuseId initBlock:(FGInitCustomViewBlock)initBlock notifyBlock: (FGNotifyCustomViewResultBlock) notifyBlock outputIsNewView: (BOOL *)isNewView;
+- (UIView *) updateView: (NSString *) reuseId initBlock:(FGInitCustomViewBlock)initBlock notifyBlock: (FGNotifyCustomViewResultBlock) notifyBlock applyStyleBlock: (FGStyleBlock) applyStyleBlock outputIsNewView: (BOOL *)isNewView;
 
 - (void) finishUpdateViews: (void(^)(UIView *)) needAdd needRemove: (void(^)(UIView *)) needRemove;
 

@@ -30,6 +30,24 @@ static void * NotifyHolderPropertyKey = &NotifyHolderPropertyKey;
 
 @end
 
+@implementation FGStyleBlockHolder
+
++ (FGStyleBlockHolder *) holderWithBlock: (FGStyleBlock) block
+{
+    FGStyleBlockHolder *holder = [[FGStyleBlockHolder alloc] init];
+    holder.block = block;
+    return holder;
+}
+
+-(void)notify: (UIView *) view;
+{
+    if (self.block != nil) {
+        self.block(view);
+    }
+}
+
+@end
+
 @implementation FGVoidBlockHolder
 
 + (FGVoidBlockHolder *) holderWithBlock: (FGVoidBlock) block

@@ -11,12 +11,16 @@
 
 @interface FastGui (FGViewGroup)
 
-+ beginGroup;
++ (void) beginGroup;
 
-+ endGroup;
++ (void) beginCustomGroup;
+
++ (void) beginGroupWithClass: (NSString *) styleClass;
+
++ (void) endGroup;
 
 @end
 
-@interface FGViewGroup : UIView<FGContext>
+@interface FGViewGroup : NSObject<FGContext>
 
 @end

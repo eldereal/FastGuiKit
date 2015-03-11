@@ -15,10 +15,6 @@
 
 + (void) viewController: (FGOnGuiBlock) onGui;
 
-+ (void) withFrame: (CGRect) rect;
-
-+ (void) withFrame: (CGRect) rect animated: (BOOL) animated;
-
 @end
 
 @interface FGViewController : UIViewController<FGContext>

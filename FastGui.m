@@ -5,17 +5,12 @@
 //  Created by 易元 白 on 15/3/1.
 //
 //
+#import <BlocksKit/BlocksKit.h>
 #import <objc/runtime.h>
 #import "FastGUI.h"
 #import "FGInternal.h"
 
 static void * ParentContextPropertyKey = &ParentContextPropertyKey;
-
-@interface FastGui ()
-
-+ (void) setContext: (id<FGContext>) context;
-
-@end
 
 @implementation FastGui
 
@@ -29,6 +24,30 @@ static id<FGContext> _context = nil;
 + (id<FGContext>) context
 {
     return _context;
+}
+
+static NSMutableArray *_styleArray;
+
++ (NSMutableArray *) styleArray
+{
+    return _styleArray;
+}
+
++ (void) setStyleArray: (NSMutableArray *) styleArray
+{
+    _styleArray = styleArray;
+}
+
+static NSArray *_styleClass;
+
++ (NSArray *) styleClass
+{
+    return _styleClass;
+}
+
++ (void) setStyleClass: (NSArray *) styleClass
+{
+    _styleClass = [styleClass copy];
 }
 
 + (void) pushContext:(id<FGContext>)context
@@ -64,9 +83,31 @@ static id<FGContext> _context = nil;
     [self.context customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
-+ (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock
++ (id) customViewWithClass:(NSString *)styleClass reuseId: (NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock
 {
-    return [self.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock];
+    NSMutableArray *array = nil;
+    if (styleClass != nil) {
+        self.styleClass = [styleClass componentsSeparatedByString:@" "];
+        self.styleArray = [NSMutableArray array];
+        [self.context styleSheet];
+        array = self.styleArray;
+    }
+    
+    self.styleArray = nil;
+    return [self.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:^(UIView *view) {
+        for (FGStyleBlockHolder *holder in array) {
+            [holder notify: view];
+        }
+    }];
+}
+
++ (void)styleOfClass:(NSString *)styleClass block:(FGStyleBlock)block
+{
+    if ([self.styleClass bk_any:^BOOL(NSString *viewStyleClass) {
+        return [styleClass isEqualToString:viewStyleClass];
+    }]) {
+        [self.styleArray addObject:[FGStyleBlockHolder holderWithBlock:block]];
+    }
 }
 
 + (id) customData:(void*) key data:(NSDictionary *)data

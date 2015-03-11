@@ -25,10 +25,12 @@
 /**
  * display a custom view with context's layout.
  */
-- (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock;
+- (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock applyStyleBlock: (FGStyleBlock) applyStyleBlock;
 
 - (id)customData:(void*) key data:(NSDictionary *)data;
 
 - (void) reloadGui;
+
+- (void) styleSheet;
 
 @end

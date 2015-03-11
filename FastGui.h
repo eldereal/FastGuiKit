@@ -27,11 +27,12 @@
 /**
  * display a custom view with context's layout.
  */
-+ (id) customViewWithReuseId: (NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock;
++ (id) customViewWithClass:(NSString *)styleClass reuseId: (NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock;
 
 + (id) customData:(void*) key data:(NSDictionary *)data;
 
-+ (void) reloadGui;
++ (void) styleOfClass: (NSString *) styleClass block: (FGStyleBlock) block;
 
++ (void) reloadGui;
 
 @end

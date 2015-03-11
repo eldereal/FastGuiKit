@@ -11,7 +11,11 @@
 
 @interface FastGui(FGBasicViews)
 
-+ (void) blockWithColor: (UIColor *) color;
++ (void) block;
+
++ (void) blockWithStyleClass: (NSString *)styleClass;
+
++ (void) blockWithColor:(UIColor *)color styleClass: (NSString *)styleClass;
 
 + (void) labelWithText: (NSString *) text;
 

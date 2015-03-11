@@ -10,18 +10,11 @@
 #import "FGInternal.h"
 #import "FGViewPool.h"
 
-static void * WithFrameMethodKey = &WithFrameMethodKey;
-static NSString *WithFrameDataKey = @"FGViewControllerWithFrameDataKey";
-static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedDataKey";
-
 @interface FGViewController ()
 
 @property (copy) FGOnGuiBlock onGuiBlock;
 
 @property (nonatomic, assign) BOOL readyForPushViewControllers;
-
-@property (nonatomic, assign) CGRect currentFrame;
-@property (nonatomic, assign) BOOL currentFrameAnimated;
 
 @property (nonatomic, strong) FGViewPool *pool;
 
@@ -47,18 +40,6 @@ static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedD
     }];
 }
 
-+ (void) withFrame:(CGRect)rect
-{
-    [self withFrame: rect animated: false];
-}
-
-+ (void) withFrame:(CGRect)rect animated:(BOOL)animated
-{
-    [FastGui customData:WithFrameMethodKey data:@{
-        WithFrameDataKey: [NSValue valueWithCGRect: rect],
-        WithFrameAnimatedDataKey: [NSNumber numberWithBool: animated]}];
-}
-
 @end
 
 
@@ -67,8 +48,6 @@ static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedD
 @synthesize parentContext;
 
 @synthesize readyForPushViewControllers;
-
-@synthesize currentFrame, currentFrameAnimated;
 
 @synthesize pool;
 
@@ -105,6 +84,11 @@ static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedD
     }
 }
 
+- (void) styleSheet
+{
+    
+}
+
 - (void)customViewControllerWithReuseId:(NSNumber *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
 {
     if (readyForPushViewControllers){
@@ -115,16 +99,10 @@ static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedD
 
 - (id)customData:(void *)key data:(NSDictionary *)data
 {
-    if (key == WithFrameMethodKey) {
-        CGRect frame = ((NSValue *)data[WithFrameDataKey]).CGRectValue;
-        BOOL animated = ((NSNumber *)data[WithFrameAnimatedDataKey]).boolValue;
-        self.currentFrame = frame;
-        self.currentFrameAnimated = animated;
-    }
     return nil;
 }
 
-- (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock
+- (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock: (FGStyleBlock) applyStyleBlock;
 {
     __weak FGViewController *weakSelf = self;
     BOOL isNewView;
@@ -132,15 +110,7 @@ static NSString *WithFrameAnimatedDataKey = @"FGViewControllerWithFrameAnimatedD
     
     UIView *view = [self.pool updateView:reuseId initBlock:initBlock notifyBlock:^(){
         [weakSelf reloadGui];
-    } outputIsNewView: &isNewView];
-    
-    if (!isNewView && currentFrameAnimated) {
-        [UIView beginAnimations:@"currentFrameAnimation" context:nil];
-        view.frame = currentFrame;
-        [UIView commitAnimations];
-    }else{
-        view.frame = currentFrame;
-    }
+    } applyStyleBlock:applyStyleBlock outputIsNewView: &isNewView];
     
     if (resultBlock == nil){
         return nil;

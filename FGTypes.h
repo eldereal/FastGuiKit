@@ -12,15 +12,14 @@ typedef void(^ FGVoidBlock)();
 
 typedef id(^ FGIdBlock)();
 
-typedef id(^ FGStyleBlock)();
-
 typedef FGVoidBlock FGOnGuiBlock;
+typedef void (^FGStyleBlock )(UIView *view);
 
 typedef UIViewController * (^FGInitCustomViewControllerBlock) (UIViewController * reuseViewController);
 
 typedef void( ^ FGNotifyCustomViewResultBlock) ();
 
-typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGNotifyCustomViewResultBlock notifyResult);
+typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGNotifyCustomViewResultBlock notifyResult, FGStyleBlock applyStyleBlock);
 
 typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 
@@ -32,6 +31,16 @@ typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 @property (copy) FGVoidBlock block;
 
 - (void) notify;
+
+@end
+
+@interface FGStyleBlockHolder : NSObject
+
++ (FGStyleBlockHolder *) holderWithBlock: (FGStyleBlock) block;
+
+@property (copy) FGStyleBlock block;
+
+-(void)notify: (UIView *) view;
 
 @end
 
