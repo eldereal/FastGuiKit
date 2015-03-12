@@ -10,6 +10,8 @@
 #import "FGInternal.h"
 #import "FGViewPool.h"
 
+#import <objc/runtime.h>
+
 @interface FGViewController ()
 
 @property (copy) FGOnGuiBlock onGuiBlock;
@@ -19,6 +21,8 @@
 @property (nonatomic, strong) FGViewPool *pool;
 
 @end
+
+
 
 @implementation FastGui (FGViewController)
 
@@ -57,9 +61,7 @@
     [FastGui callOnGui:^{
         [self onGui];
     } withContext:self];
-    [self.pool finishUpdateViews:^(UIView * view) {
-        [self.view addSubview:view];
-    } needRemove:^(UIView * view) {
+    [self.pool finishUpdateViews:nil needRemove:^(UIView * view) {
         [view removeFromSuperview];
     }];
 }
@@ -110,7 +112,12 @@
     
     UIView *view = [self.pool updateView:reuseId initBlock:initBlock notifyBlock:^(){
         [weakSelf reloadGui];
-    } applyStyleBlock:applyStyleBlock outputIsNewView: &isNewView];
+    } outputIsNewView: &isNewView];
+    
+    if (isNewView){
+        [self.view addSubview: view];
+    }
+    applyStyleBlock(view);
     
     if (resultBlock == nil){
         return nil;
@@ -120,3 +127,4 @@
 }
 
 @end
+

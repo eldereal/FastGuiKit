@@ -10,11 +10,21 @@
 #import "FGViewPool.h"
 #import "FGInternal.h"
 #import "FGBasicViews.h"
+#import <objc/runtime.h>
 
-static void * BeginGroupMethodKey = &BeginGroupMethodKey;
 static void * EndGroupMethodKey = &EndGroupMethodKey;
-static NSString * BeginGroupStyleClassDataKey = @"FGViewGroupBeginGroupStyleClassDataKey";
-static NSString * BeginGroupIsCustomDataKey = @"FGViewGroupBeginGroupIsCustomDataKey";
+
+@interface UIView (FGViewGroup)
+
+@property (nonatomic, strong) FGViewPool *pool;
+
+@end
+
+@interface FGViewGroup : NSObject<FGContext>
+
+@property (nonatomic, strong) UIView *groupView;
+
+@end
 
 @implementation FastGui (FGViewGroup)
 
@@ -35,7 +45,12 @@ static NSString * BeginGroupIsCustomDataKey = @"FGViewGroupBeginGroupIsCustomDat
 
 + (void)beginGroupWithClass:(NSString *)styleClass isCustom: (BOOL) isCustom;
 {
-    [self customData:BeginGroupMethodKey data:@{BeginGroupStyleClassDataKey: styleClass, BeginGroupIsCustomDataKey: [NSNumber numberWithBool: isCustom]}];
+    FGViewGroup *group = [[FGViewGroup alloc] init];
+    group.groupView = nil;
+    [self pushContext: group];
+    if(!isCustom){
+        [self blockWithStyleClass: styleClass];
+    }
 }
 
 + (void) endGroup
@@ -45,18 +60,7 @@ static NSString * BeginGroupIsCustomDataKey = @"FGViewGroupBeginGroupIsCustomDat
 
 @end
 
-@interface FGViewGroup()
 
-@property (nonatomic, strong) FGViewPool *pool;
-
-@property (nonatomic, copy) NSString *groupViewReuseId;
-@property (copy) FGInitCustomViewBlock initGroupViewBlock;
-@property (copy) FGStyleBlock groupViewApplyStyleBlock;
-@property (copy) FGGetCustomViewResultBlock groupViewGetResultBlock;
-
-@property (nonatomic, assign) BOOL waitingForCustomView;
-
-@end
 
 @implementation FGViewGroup
 
@@ -67,59 +71,47 @@ static NSString * BeginGroupIsCustomDataKey = @"FGViewGroupBeginGroupIsCustomDat
     [parentContext reloadGui];
 }
 
-- (void)customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
+- (void) customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
 {
     [parentContext customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
-- (id)customData:(void *)key data:(NSDictionary *)data
+- (id) customData:(void *)key data:(NSDictionary *)data
 {
-    if(key == BeginGroupMethodKey){
-        [self beginGroupWithClass: data[BeginGroupStyleClassDataKey] isCustom: data[BeginGroupIsCustomDataKey]];
-    }else if (key == EndGroupMethodKey){
+    if (key == EndGroupMethodKey){
         [self endGroup];
+    }else{
+        return [self.parentContext customData:key data:data];
     }
     return nil;
 }
 
-- (void) beginGroupWithClass:(NSString *)styleClass isCustom: (NSNumber *) isCustom
-{
-    if (self.pool == nil) {
-        self.pool = [[FGViewPool alloc] init];
-    }
-
-    self.groupViewReuseId = nil;
-    self.groupViewGetResultBlock = nil;
-    self.groupViewApplyStyleBlock = nil;
-    self.initGroupViewBlock = nil;
-    self.waitingForCustomView = YES;
-    
-    [self.pool prepareUpdateViews];
-    [FastGui pushContext: self];
-    if(!isCustom.boolValue){
-        [FastGui blockWithStyleClass: styleClass];
-    }
-    
-}
-
 - (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
-    if(self.waitingForCustomView){
-        self.groupViewReuseId = reuseId;
-        self.groupViewGetResultBlock = resultBlock;
-        self.groupViewApplyStyleBlock = applyStyleBlock;
-        self.initGroupViewBlock = initBlock;
-        return nil;
+    __weak FGViewGroup *weakSelf = self;
+    if(self.groupView == nil){
+        id ret = [self.parentContext customViewWithReuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+            UIView *view = initBlock(reuseView, ^{
+                [weakSelf reloadGui];
+            });
+            weakSelf.groupView = view;
+            if(view.pool == nil){
+                view.pool = [[FGViewPool alloc] init];
+            }
+            [view.pool prepareUpdateViews];
+            return view;
+        } resultBlock: resultBlock applyStyleBlock:applyStyleBlock];
+        return ret;
     }else{
-        __weak FGViewGroup *weakSelf = self;
-        BOOL isNewView;
-        
-        
-        UIView *view = [self.pool updateView:reuseId initBlock:initBlock notifyBlock:^(){
+        BOOL isNew;
+        UIView *view = [self.groupView.pool updateView:reuseId initBlock:initBlock notifyBlock:^{
             [weakSelf reloadGui];
-        } applyStyleBlock:applyStyleBlock outputIsNewView: &isNewView];
-        
-        if (resultBlock == nil){
+        } outputIsNewView: &isNew];
+        if (isNew) {
+            [self.groupView addSubview:view];
+        }
+        applyStyleBlock(view);
+        if (resultBlock == nil) {
             return nil;
         }else{
             return resultBlock(view);
@@ -129,13 +121,33 @@ static NSString * BeginGroupIsCustomDataKey = @"FGViewGroupBeginGroupIsCustomDat
 
 - (void) endGroup
 {
+    if (self.groupView != nil){
+        [self.groupView.pool finishUpdateViews:nil needRemove:^(UIView *view) {
+            [view removeFromSuperview];
+        }];
+    }
     [FastGui popContext];
-    
 }
 
 - (void)styleSheet
 {
     [self.parentContext styleSheet];
+}
+
+@end
+
+static void * PoolKey = &PoolKey;
+
+@implementation UIView (FGViewGroup)
+
+- (FGViewPool *)pool
+{
+    return objc_getAssociatedObject(self, PoolKey);
+}
+
+- (void)setPool:(FGViewPool *)pool
+{
+    objc_setAssociatedObject(self, PoolKey, pool, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end

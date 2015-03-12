@@ -32,7 +32,7 @@
     [_needRemoveViews removeAllObjects];
 }
 
-- (UIView *)updateView:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock notifyBlock:(FGNotifyCustomViewResultBlock)notifyBlock applyStyleBlock: (FGStyleBlock) applyStyleBlock outputIsNewView:(BOOL *)isNewView
+- (UIView *)updateView:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock notifyBlock:(FGNotifyCustomViewResultBlock)notifyBlock outputIsNewView:(BOOL *)isNewView
 {
     UIView *foundReuseView = nil;
     for (NSUInteger i = 0; i < _oldViews.count; i++) {
@@ -46,16 +46,18 @@
             break;
         }
     }
-    UIView *view = initBlock(foundReuseView, notifyBlock, applyStyleBlock);
+    UIView *view = initBlock(foundReuseView, notifyBlock);
     view.reuseId = reuseId;
     [_views addObject: view];
     *isNewView = view != nil && view != foundReuseView;
+    
+    if (*isNewView) {
+        [_needAddViews addObject: view];
+    }
     if (foundReuseView != nil && view != foundReuseView) {
         [_needRemoveViews addObject: foundReuseView];
     }
-    if (view != nil && view != foundReuseView) {
-        [_needAddViews addObject: view];
-    }
+    
     return view;
 }
 

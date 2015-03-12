@@ -19,7 +19,7 @@ typedef UIViewController * (^FGInitCustomViewControllerBlock) (UIViewController 
 
 typedef void( ^ FGNotifyCustomViewResultBlock) ();
 
-typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGNotifyCustomViewResultBlock notifyResult, FGStyleBlock applyStyleBlock);
+typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGNotifyCustomViewResultBlock notifyResult);
 
 typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 

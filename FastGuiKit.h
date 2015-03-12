@@ -13,5 +13,7 @@
 #include "FGViewController.h"
 #include "FGBasicViews.h"
 #include "FGStyle.h"
+#include "FGViewGroup.h"
+#include "FGViewGrid.h"
 
 #endif

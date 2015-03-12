@@ -20,7 +20,3 @@
 + (void) endGroup;
 
 @end
-
-@interface FGViewGroup : NSObject<FGContext>
-
-@end

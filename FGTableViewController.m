@@ -95,12 +95,11 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 + (BOOL) tableCell:(NSString *)title
 {
     NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    id ret = [FastGui customViewWithClass: nil reuseId:reuseId initBlock:^UIView *(UIView *view, FGNotifyCustomViewResultBlock notify, FGStyleBlock applyStyle) {
+    id ret = [FastGui customViewWithClass: nil reuseId:reuseId initBlock:^UIView *(UIView *view, FGNotifyCustomViewResultBlock notify) {
         if (view == nil){
             printf("tableCell(%s): %s\n", [reuseId UTF8String], [title UTF8String]);
             view = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseId];
         }
-        applyStyle(view);
         UITableViewCell *cell = ((UITableViewCell *)view);
         //printf("reuse title: %s, actual title: %s\n", [cell.textLabel.text UTF8String], [title UTF8String]);
         
@@ -229,7 +228,7 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
     __weak FGTableViewController *weakSelf = self;
     UIView *view = initBlock(foundReuseView, ^(){
         [weakSelf reloadGui];
-    }, applyStyleBlock);
+    });
     view.reuseId = reuseId;
     [self.items addPointer:(__bridge void *)(view)];
     

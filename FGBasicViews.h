@@ -15,9 +15,21 @@
 
 + (void) blockWithStyleClass: (NSString *)styleClass;
 
++ (void) blockWithColor:(UIColor *)color;
+
 + (void) blockWithColor:(UIColor *)color styleClass: (NSString *)styleClass;
 
 + (void) labelWithText: (NSString *) text;
+
++ (void) labelWithText: (NSString *) text styleClass: (NSString *)styleClass;
+
++ (void) labelWithReuseId:(NSString *)reuseId text: (NSString *)text styleClass: (NSString *)styleClass;
+
++ (void) imageWithName: (NSString *) name;
+
++ (void) imageWithName: (NSString *) name styleClass: (NSString *)styleClass;
+
++ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass;
 
 + (BOOL) toggleButtonWithTitle: (NSString *) title;
 

@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 #import "FastGUI.h"
 #import "FGInternal.h"
+#import "FGStyle.h"
 
 static void * ParentContextPropertyKey = &ParentContextPropertyKey;
 
@@ -95,9 +96,11 @@ static NSArray *_styleClass;
     
     self.styleArray = nil;
     return [self.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:^(UIView *view) {
-        for (FGStyleBlockHolder *holder in array) {
-            [holder notify: view];
-        }
+        [FGStyle updateStyleOfView:view withBlock:^(UIView *view) {
+            for (FGStyleBlockHolder *holder in array) {
+                [holder notify: view];
+            }
+        }];
     }];
 }
 

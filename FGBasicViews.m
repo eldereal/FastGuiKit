@@ -5,11 +5,13 @@
 //  Created by 易元 白 on 15/3/9.
 //  Copyright (c) 2015年 cn.myzgstudio. All rights reserved.
 //
-
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/NSObject+A2DynamicDelegate.h>
 #import <objc/runtime.h>
 #import "FGBasicViews.h"
 #import "FGTypes.h"
 #import "FGInternal.h"
+#import "FGStyle.h"
 
 static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
@@ -33,42 +35,105 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 @end
 
+@interface FGColoredBlock : UIView<FGStylable>
+
+@end
+
+@implementation FGColoredBlock
+
+- (void)styleWithBackgroundColor:(UIColor *)backgroundColor
+{
+    //this block ignores backgroundColor style;
+}
+
+@end
+
 @implementation FastGui(FGBasicViews)
 
 + (void) block
 {
-    [self blockWithColor:[UIColor colorWithWhite:0 alpha:0] styleClass:nil];
+    [self blockWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil];
 }
 
 + (void)blockWithStyleClass:(NSString *)styleClass
 {
-    [self blockWithColor:[UIColor colorWithWhite:0 alpha:0] styleClass:styleClass];
+    [self blockWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass];
 }
 
-+ (void) blockWithColor:(UIColor *)color styleClass: (NSString *)styleClass
++ (void)blockWithReuseId: (NSString *) reuseId styleClass:(NSString *)styleClass
 {
-    NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult, FGStyleBlock applyStyle) {
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
         if (reuseView == nil) {
             reuseView = [[UIView alloc] init];
         }
-        applyStyle(reuseView);
-        reuseView.backgroundColor = color;
         return reuseView;
     } resultBlock: nil];
 }
 
-+ (void) labelWithText:(NSString *)text
++ (void)blockWithColor:(UIColor *)color
 {
-    NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    [self customViewWithClass:nil reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult, FGStyleBlock applyStyle) {
+    [self blockWithColor:color withReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil];
+}
+
++ (void)blockWithColor:(UIColor *)color styleClass:(NSString *)styleClass
+{
+    [self blockWithColor:color withReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass];
+}
+
++ (void) blockWithColor:(UIColor *)color withReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass
+{
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+        FGColoredBlock *view = (FGColoredBlock *)reuseView;
+        if (view == nil) {
+            view = [[FGColoredBlock alloc] init];
+            
+        }
+        view.backgroundColor = color;
+        return view;
+    } resultBlock: nil];
+}
+
++ (void)labelWithText:(NSString *)text
+{
+    [self labelWithReuseId:[FGInternal callerPositionAsReuseId] text:text styleClass:nil];
+}
+
++ (void)labelWithText:(NSString *)text styleClass:(NSString *)styleClass
+{
+    [self labelWithReuseId:[FGInternal callerPositionAsReuseId] text:text styleClass: styleClass];
+}
+
++ (void) labelWithReuseId:(NSString *)reuseId text: (NSString *)text styleClass: (NSString *)styleClass
+{
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
         UILabel *label = (UILabel *) reuseView;
         if(label == nil){
             label = [[UILabel alloc] init];
         }
-        applyStyle(label);
         label.text = text;
         return label;
+    } resultBlock: nil];
+}
+
++ (void)imageWithName:(NSString *)name
+{
+    [self imageWithReuseId:[FGInternal callerPositionAsReuseId] imageNamed:name styleClass:nil];
+}
+
++ (void)imageWithName:(NSString *)name styleClass:(NSString *)styleClass
+{
+    [self imageWithReuseId:[FGInternal callerPositionAsReuseId] imageNamed:name styleClass:styleClass];
+}
+
++ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass
+{
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+        UIImageView *img = (UIImageView *) reuseView;
+        if(img == nil){
+            img = [[UIImageView alloc] init];
+        }
+        img.image = [UIImage imageNamed: name];
+        return img;
     } resultBlock: nil];
 }
 
@@ -84,7 +149,7 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 + (BOOL)toggleButtonWithReuseId:(NSString *)reuseId title:(NSString *)title selectedTitle:(NSString *)selectedTitle
 {
-    NSNumber *ret = [self customViewWithClass:nil reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult, FGStyleBlock applyStyle) {
+    NSNumber *ret = [self customViewWithClass:nil reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
         UIButton *btn = (UIButton *) reuseView;
         if (btn == nil){
             btn = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -98,7 +163,6 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
             btn.onClickHolder = onClickHolder;
             [btn addTarget:onClickHolder action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
         }
-        applyStyle(btn);
         btn.notifyHolder = [FGNotifyCustomViewResultHolder holderWithBlock:notifyResult];
         [btn setTitle:title forState:UIControlStateNormal];
         [btn setTitle:selectedTitle forState:UIControlStateSelected];
