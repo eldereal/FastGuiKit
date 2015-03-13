@@ -20,11 +20,11 @@
 
 + (void) emptyGrid;
 
-+ (void) nextGridRowSpan: (NSUInteger) rowSpan colSpan: (NSUInteger) colSpan;
++ (void) gridRowSpan: (NSUInteger) rowSpan colSpan: (NSUInteger) colSpan;
 
-+ (void) nextGridRowSpan: (NSUInteger) rowSpan;
++ (void) gridRowSpan: (NSUInteger) rowSpan;
 
-+ (void) nextGridColSpan: (NSUInteger) colSpan;
++ (void) gridColSpan: (NSUInteger) colSpan;
 
 @end
 

@@ -15,5 +15,6 @@
 #include "FGStyle.h"
 #include "FGViewGroup.h"
 #include "FGViewGrid.h"
+#include "FGNavigationBar.h"
 
 #endif

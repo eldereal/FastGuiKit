@@ -8,7 +8,7 @@
 
 #import "FGViewController.h"
 #import "FGInternal.h"
-#import "FGViewPool.h"
+#import "FGReuseItemPool.h"
 
 #import <objc/runtime.h>
 
@@ -18,7 +18,7 @@
 
 @property (nonatomic, assign) BOOL readyForPushViewControllers;
 
-@property (nonatomic, strong) FGViewPool *pool;
+@property (nonatomic, strong) FGReuseItemPool *pool;
 
 @end
 
@@ -57,18 +57,18 @@
 
 - (void) reloadGui
 {
-    [self.pool prepareUpdateViews];
+    [self.pool prepareUpdateItems];
     [FastGui callOnGui:^{
         [self onGui];
     } withContext:self];
-    [self.pool finishUpdateViews:nil needRemove:^(UIView * view) {
+    [self.pool finishUpdateItems:nil needRemove:^(UIView * view) {
         [view removeFromSuperview];
     }];
 }
 
 - (void) viewDidLoad {
     [super viewDidLoad];
-    self.pool = [[FGViewPool alloc] init];
+    self.pool = [[FGReuseItemPool alloc] init];
     self.readyForPushViewControllers = false;
     [self reloadGui];
 }
@@ -110,7 +110,7 @@
     BOOL isNewView;
     
     
-    UIView *view = [self.pool updateView:reuseId initBlock:initBlock notifyBlock:^(){
+    UIView *view = [self.pool updateItem:reuseId initBlock:initBlock notifyBlock:^(){
         [weakSelf reloadGui];
     } outputIsNewView: &isNewView];
     

@@ -8,7 +8,7 @@
 
 #import "FGViewGrid.h"
 #import "FGInternal.h"
-#import "FGViewPool.h"
+#import "FGReuseItemPool.h"
 
 #define INDEX(row, col, cols) (row * cols + col)
 
@@ -32,7 +32,7 @@
 
 @property (nonatomic, assign) NSUInteger cols;
 
-@property (nonatomic, strong) FGViewPool *pool;
+@property (nonatomic, strong) FGReuseItemPool *pool;
 
 @property (nonatomic, strong) NSMutableArray *grids;
 
@@ -88,11 +88,11 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
 
 + (void) beginGridWithReuseId: (NSString *)reuseId columns: (NSUInteger) cols rows: (NSUInteger) rows styleClass: (NSString *) styleClass
 {
-    FGViewGrid *grid = [FastGui customViewWithClass: styleClass reuseId: reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+    FGViewGrid *grid = [FastGui customViewWithClass: styleClass reuseId: reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
         FGViewGrid *view = (FGViewGrid *) reuseView;
         if (view == nil) {
             view = [[FGViewGrid alloc] init];
-            view.pool = [[FGViewPool alloc] init];
+            view.pool = [[FGReuseItemPool alloc] init];
             view.grids = [NSMutableArray array];
         }
         view.cols = cols;
@@ -103,7 +103,7 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
                 [view.grids addObject: [NSNull null]];
             }
         }
-        [view.pool prepareUpdateViews];
+        [view.pool prepareUpdateItems];
         view.nextCell = nil;
         return view;
     } resultBlock:^id(UIView *view) {
@@ -122,17 +122,17 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
     [FastGui customData:EmptyGridMethodKey data:nil];
 }
 
-+ (void)nextGridRowSpan:(NSUInteger)rowSpan colSpan:(NSUInteger)colSpan
++ (void)gridRowSpan:(NSUInteger)rowSpan colSpan:(NSUInteger)colSpan
 {
     [FastGui customData:NextGridRowColSpanMethodKey data:@{NextGridRowSpanDataKey: [NSNumber numberWithUnsignedInteger: rowSpan], NextGridColSpanDataKey: [NSNumber numberWithUnsignedInteger: colSpan]}];
 }
 
-+ (void)nextGridRowSpan:(NSUInteger)rowSpan
++ (void)gridRowSpan:(NSUInteger)rowSpan
 {
     [FastGui customData:NextGridRowColSpanMethodKey data:@{NextGridRowSpanDataKey: [NSNumber numberWithUnsignedInteger: rowSpan]}];
 }
 
-+ (void)nextGridColSpan:(NSUInteger)colSpan
++ (void)gridColSpan:(NSUInteger)colSpan
 {
     [FastGui customData:NextGridRowColSpanMethodKey data:@{NextGridColSpanDataKey: [NSNumber numberWithUnsignedInteger: colSpan]}];
 }
@@ -179,7 +179,7 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
 
 - (void) endGrid
 {
-    [self.pool finishUpdateViews:nil needRemove:^(UIView *view) {
+    [self.pool finishUpdateItems:nil needRemove:^(UIView *view) {
         [view removeFromSuperview];
     }];
     [FastGui popContext];
@@ -238,7 +238,7 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
     
     __weak FGViewGrid *weakSelf = self;
     BOOL isNew;
-    UIView *view = [self.pool updateView:reuseId initBlock:initBlock notifyBlock:^{
+    UIView *view = (UIView *)[self.pool updateItem:reuseId initBlock:initBlock notifyBlock:^{
         [weakSelf reloadGui];
     } outputIsNewView: &isNew];
     if (isNew) {

@@ -62,7 +62,7 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 + (void)blockWithReuseId: (NSString *) reuseId styleClass:(NSString *)styleClass
 {
-    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
         if (reuseView == nil) {
             reuseView = [[UIView alloc] init];
         }
@@ -82,7 +82,7 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 + (void) blockWithColor:(UIColor *)color withReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass
 {
-    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
         FGColoredBlock *view = (FGColoredBlock *)reuseView;
         if (view == nil) {
             view = [[FGColoredBlock alloc] init];
@@ -105,7 +105,7 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 + (void) labelWithReuseId:(NSString *)reuseId text: (NSString *)text styleClass: (NSString *)styleClass
 {
-    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
         UILabel *label = (UILabel *) reuseView;
         if(label == nil){
             label = [[UILabel alloc] init];
@@ -127,7 +127,7 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 + (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass
 {
-    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
         UIImageView *img = (UIImageView *) reuseView;
         if(img == nil){
             img = [[UIImageView alloc] init];
@@ -139,17 +139,27 @@ static void * OnClickHolderPropertyKey = &OnClickHolderPropertyKey;
 
 + (BOOL) toggleButtonWithTitle:(NSString *)title
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:title];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:title styleClass: nil];
+}
+
++ (BOOL)toggleButtonWithTitle:(NSString *)title styleClass:(NSString *)styleClass
+{
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:title styleClass: styleClass];
 }
 
 + (BOOL)toggleButtonWithTitle:(NSString *)title selectedTitle:(NSString *)selectedTitle
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:selectedTitle];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:selectedTitle styleClass:nil];
 }
 
-+ (BOOL)toggleButtonWithReuseId:(NSString *)reuseId title:(NSString *)title selectedTitle:(NSString *)selectedTitle
++ (BOOL)toggleButtonWithTitle:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
 {
-    NSNumber *ret = [self customViewWithClass:nil reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:selectedTitle styleClass:styleClass];
+}
+
++ (BOOL)toggleButtonWithReuseId:(NSString *)reuseId title:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
+{
+    NSNumber *ret = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
         UIButton *btn = (UIButton *) reuseView;
         if (btn == nil){
             btn = [UIButton buttonWithType:UIButtonTypeSystem];

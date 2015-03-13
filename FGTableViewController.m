@@ -95,7 +95,7 @@ static void * ActionResultPropertyKey = &ActionResultPropertyKey;
 + (BOOL) tableCell:(NSString *)title
 {
     NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    id ret = [FastGui customViewWithClass: nil reuseId:reuseId initBlock:^UIView *(UIView *view, FGNotifyCustomViewResultBlock notify) {
+    id ret = [FastGui customViewWithClass: nil reuseId:reuseId initBlock:^UIView *(UIView *view, FGVoidBlock notify) {
         if (view == nil){
             printf("tableCell(%s): %s\n", [reuseId UTF8String], [title UTF8String]);
             view = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:reuseId];

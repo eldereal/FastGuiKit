@@ -69,12 +69,11 @@ static NSArray *_styleClass;
     //dispatch_async(dispatch_get_main_queue(), ^{
         assert(self.context == nil);
         [self pushContext:context];
-        @try {
+        //@try {
             onGui();
-        }
-        @finally {
+        //}@finally {
             [self popContext];
-        }
+        //}
         assert(self.context == nil);
     //});
 }

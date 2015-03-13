@@ -8,7 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-typedef void(^ FGVoidBlock)();
+
+typedef void( ^ FGVoidBlock) ();
 
 typedef id(^ FGIdBlock)();
 
@@ -17,9 +18,9 @@ typedef void (^FGStyleBlock )(UIView *view);
 
 typedef UIViewController * (^FGInitCustomViewControllerBlock) (UIViewController * reuseViewController);
 
-typedef void( ^ FGNotifyCustomViewResultBlock) ();
 
-typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGNotifyCustomViewResultBlock notifyResult);
+
+typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGVoidBlock notifyResult);
 
 typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 
@@ -46,18 +47,22 @@ typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 
 @interface FGNotifyCustomViewResultHolder: NSObject
 
-+ (FGNotifyCustomViewResultHolder *) holderWithBlock: (FGNotifyCustomViewResultBlock) block;
++ (FGNotifyCustomViewResultHolder *) holderWithBlock: (FGVoidBlock) block;
 
-@property (copy) FGNotifyCustomViewResultBlock block;
+@property (copy) FGVoidBlock block;
 
 - (void) notify;
 
 @end
 
 
-@interface UIView (FastGui)
+@protocol FGWithReuseId <NSObject>
 
 @property (nonatomic, copy) NSString *reuseId;
+
+@end
+
+@interface UIView (FastGui) <FGWithReuseId>
 
 @property (nonatomic, strong) FGNotifyCustomViewResultHolder * notifyHolder;
 

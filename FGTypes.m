@@ -14,7 +14,7 @@ static void * NotifyHolderPropertyKey = &NotifyHolderPropertyKey;
 
 @implementation FGNotifyCustomViewResultHolder
 
-+ (FGNotifyCustomViewResultHolder *) holderWithBlock: (FGNotifyCustomViewResultBlock) block
++ (FGNotifyCustomViewResultHolder *) holderWithBlock: (FGVoidBlock) block
 {
     FGNotifyCustomViewResultHolder *holder = [[FGNotifyCustomViewResultHolder alloc] init];
     holder.block = block;

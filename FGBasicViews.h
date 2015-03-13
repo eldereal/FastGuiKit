@@ -33,7 +33,10 @@
 
 + (BOOL) toggleButtonWithTitle: (NSString *) title;
 
++ (BOOL) toggleButtonWithTitle: (NSString *) title styleClass: (NSString *)styleClass;
+
 + (BOOL) toggleButtonWithTitle: (NSString *) title selectedTitle: (NSString *) selectedTitle;
 
++ (BOOL) toggleButtonWithTitle: (NSString *) title selectedTitle: (NSString *) selectedTitle styleClass: (NSString *)styleClass;
 
 @end

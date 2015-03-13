@@ -7,7 +7,8 @@
 //
 
 #import "FGViewGroup.h"
-#import "FGViewPool.h"
+#import "FGReuseItemPool.h"
+#import "FGTypes.h"
 #import "FGInternal.h"
 #import "FGBasicViews.h"
 #import <objc/runtime.h>
@@ -16,7 +17,7 @@ static void * EndGroupMethodKey = &EndGroupMethodKey;
 
 @interface UIView (FGViewGroup)
 
-@property (nonatomic, strong) FGViewPool *pool;
+@property (nonatomic, strong) FGReuseItemPool *pool;
 
 @end
 
@@ -90,21 +91,21 @@ static void * EndGroupMethodKey = &EndGroupMethodKey;
 {
     __weak FGViewGroup *weakSelf = self;
     if(self.groupView == nil){
-        id ret = [self.parentContext customViewWithReuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGNotifyCustomViewResultBlock notifyResult) {
+        id ret = [self.parentContext customViewWithReuseId:reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
             UIView *view = initBlock(reuseView, ^{
                 [weakSelf reloadGui];
             });
             weakSelf.groupView = view;
             if(view.pool == nil){
-                view.pool = [[FGViewPool alloc] init];
+                view.pool = [[FGReuseItemPool alloc] init];
             }
-            [view.pool prepareUpdateViews];
+            [view.pool prepareUpdateItems];
             return view;
         } resultBlock: resultBlock applyStyleBlock:applyStyleBlock];
         return ret;
     }else{
         BOOL isNew;
-        UIView *view = [self.groupView.pool updateView:reuseId initBlock:initBlock notifyBlock:^{
+        UIView *view = (UIView *)[self.groupView.pool updateItem:reuseId initBlock:initBlock notifyBlock:^{
             [weakSelf reloadGui];
         } outputIsNewView: &isNew];
         if (isNew) {
@@ -122,7 +123,7 @@ static void * EndGroupMethodKey = &EndGroupMethodKey;
 - (void) endGroup
 {
     if (self.groupView != nil){
-        [self.groupView.pool finishUpdateViews:nil needRemove:^(UIView *view) {
+        [self.groupView.pool finishUpdateItems:nil needRemove:^(UIView *view) {
             [view removeFromSuperview];
         }];
     }
@@ -140,12 +141,12 @@ static void * PoolKey = &PoolKey;
 
 @implementation UIView (FGViewGroup)
 
-- (FGViewPool *)pool
+- (FGReuseItemPool *)pool
 {
     return objc_getAssociatedObject(self, PoolKey);
 }
 
-- (void)setPool:(FGViewPool *)pool
+- (void)setPool:(FGReuseItemPool *)pool
 {
     objc_setAssociatedObject(self, PoolKey, pool, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
