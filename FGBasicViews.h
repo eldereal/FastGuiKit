@@ -7,7 +7,7 @@
 //
 
 #import "FastGui.h"
-
+#import "FGStyle.h"
 
 @interface FastGui(FGBasicViews)
 
@@ -19,17 +19,33 @@
 
 + (void) blockWithColor:(UIColor *)color styleClass: (NSString *)styleClass;
 
++ (void) touchableBlockWithCallback: (FGVoidBlock) callback;
+
++ (void) touchableBlockWithCallback: (FGVoidBlock) callback styleClass: (NSString *)styleClass;
+
++ (void) scrollView;
+
++ (void) scrollViewWithStyleClass: (NSString *)styleClass;
+
 + (void) labelWithText: (NSString *) text;
 
 + (void) labelWithText: (NSString *) text styleClass: (NSString *)styleClass;
 
-+ (void) labelWithReuseId:(NSString *)reuseId text: (NSString *)text styleClass: (NSString *)styleClass;
+//+ (void) labelWithReuseId:(NSString *)reuseId text: (NSString *)text styleClass: (NSString *)styleClass;
+
++ (void) selectableLabelWithText: (NSString *) text;
+
++ (void) selectableLabelWithText: (NSString *) text styleClass: (NSString *)styleClass;
+
+//+ (void) selectableLabelWithReuseId:(NSString *)reuseId text: (NSString *)text styleClass: (NSString *)styleClass;
 
 + (void) imageWithName: (NSString *) name;
 
 + (void) imageWithName: (NSString *) name styleClass: (NSString *)styleClass;
 
-+ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass;
+//+ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass;
+
++ (void) buttonWithTitle: (NSString *) title styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
 
 + (BOOL) toggleButtonWithTitle: (NSString *) title;
 
@@ -38,5 +54,40 @@
 + (BOOL) toggleButtonWithTitle: (NSString *) title selectedTitle: (NSString *) selectedTitle;
 
 + (BOOL) toggleButtonWithTitle: (NSString *) title selectedTitle: (NSString *) selectedTitle styleClass: (NSString *)styleClass;
+
++ (NSString *) textField;
+
++ (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder;
+
++ (NSString *) textFieldWithStyleClass: (NSString *)styleClass;
+
++ (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass;
+
++ (NSString *) passwordField;
+
++ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder;
+
++ (NSString *) passwordFieldWithStyleClass: (NSString *)styleClass;
+
++ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass;
+
++ (NSUInteger) segmentControlWithItems: (NSArray *) items;
+
++ (NSUInteger) segmentControlWithItems: (NSArray *) items selectedSegmentIndex: (NSInteger) selectedSegmentIndex;
+
++ (NSUInteger) segmentControlWithItems: (NSArray *) items  styleClass: (NSString *)styleClass;
+
++ (NSUInteger) segmentControlWithItems: (NSArray *) items selectedSegmentIndex: (NSInteger) selectedSegmentIndex styleClass: (NSString *)styleClass;
+
++ (void) activityIndicator;
+
++ (void) activityIndicatorWithStyleClass: (NSString *)styleClass;
+
+
+@end
+
+@interface FGStyle(FGBasicViews)
+
++ (void) labelLines: (NSInteger) lines;
 
 @end

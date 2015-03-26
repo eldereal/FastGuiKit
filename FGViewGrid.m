@@ -9,6 +9,7 @@
 #import "FGViewGrid.h"
 #import "FGInternal.h"
 #import "FGReuseItemPool.h"
+#import "UIView+FGStylable.h"
 
 #define INDEX(row, col, cols) (row * cols + col)
 
@@ -58,12 +59,12 @@
 
 + (void) gridSpacingX: (CGFloat) gridSpacingX
 {
-    [self customStyle:@"gridSpacingX" value: [NSNumber numberWithFloat:gridSpacingX]];
+    [self customStyleWithKey:@"gridSpacingX" value: [NSNumber numberWithFloat:gridSpacingX]];
 }
 
 + (void) gridSpacingY: (CGFloat) gridSpacingY
 {
-    [self customStyle:@"gridSpacingY" value: [NSNumber numberWithFloat:gridSpacingY]];
+    [self customStyleWithKey:@"gridSpacingY" value: [NSNumber numberWithFloat:gridSpacingY]];
 }
 
 @end
@@ -88,7 +89,7 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
 
 + (void) beginGridWithReuseId: (NSString *)reuseId columns: (NSUInteger) cols rows: (NSUInteger) rows styleClass: (NSString *) styleClass
 {
-    FGViewGrid *grid = [FastGui customViewWithClass: styleClass reuseId: reuseId initBlock:^UIView *(UIView *reuseView, FGVoidBlock notifyResult) {
+    FGViewGrid *grid = [FastGui customViewWithClass: styleClass reuseId: reuseId initBlock:^UIView *(UIView *reuseView) {
         FGViewGrid *view = (FGViewGrid *) reuseView;
         if (view == nil) {
             view = [[FGViewGrid alloc] init];
@@ -190,6 +191,11 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
     [parentContext customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
+- (void)dismissViewController
+{
+    [parentContext dismissViewController];
+}
+
 - (BOOL) findNextRowIndex: (NSUInteger *)outRow colIndex: (NSUInteger *)outCol
 {
     for (NSUInteger row = 0; row < self.rows; row++) {
@@ -236,20 +242,24 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
         return nil;
     }
     
-    __weak FGViewGrid *weakSelf = self;
     BOOL isNew;
-    UIView *view = (UIView *)[self.pool updateItem:reuseId initBlock:initBlock notifyBlock:^{
-        [weakSelf reloadGui];
-    } outputIsNewView: &isNew];
+    UIView *view = (UIView *)[self.pool updateItem:reuseId initBlock:initBlock outputIsNewView: &isNew];
     if (isNew) {
+        [view sizeStyleDisabledWithTip:@"you cannot set size of views in grids"];
+        [view positionStyleDisabledWithTip:@"you cannot set position of views in grids"];
+        [view setTranslatesAutoresizingMaskIntoConstraints:NO];
         [self addSubview:view];
     }
     applyStyleBlock(view);
+    view.leftConstraint = [self updateConstraint:view.leftConstraint view1:view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0*col/self.cols constant:col * self.gridSpacingX / self.cols];
+    view.topConstraint = [self updateConstraint:view.topConstraint view1:view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0*row/self.rows constant:row * self.gridSpacingY / self.rows];
+    view.widthConstraint = [self updateConstraint:view.widthConstraint view1:view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeWidth multiplier:(CGFloat)nextCell.colSpan/(CGFloat)self.cols constant: self.gridSpacingX * ((CGFloat)nextCell.colSpan - (CGFloat)self.cols) / (CGFloat)self.cols];
+    view.heightConstraint = [self updateConstraint:view.heightConstraint view1:view attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeHeight multiplier:(CGFloat)nextCell.rowSpan/(CGFloat)self.rows constant:self.gridSpacingY * ((CGFloat)nextCell.rowSpan - (CGFloat)self.rows) / (CGFloat)self.rows];
     
-    CGFloat gridWidth = (self.frame.size.width - self.gridSpacingX * (self.cols - 1)) / self.cols;
-    CGFloat gridHeight = (self.frame.size.height - self.gridSpacingY * (self.rows - 1)) / self.rows;
-    
-    view.frame = CGRectMake((gridWidth + self.gridSpacingX) * col, (gridHeight + self.gridSpacingY) * row, (gridWidth + self.gridSpacingX) * nextCell.colSpan - self.gridSpacingX , (gridHeight + self.gridSpacingY) * nextCell.rowSpan - self.gridSpacingY);
+//    CGFloat gridWidth = (self.frame.size.width - self.gridSpacingX * (self.cols - 1)) / self.cols;
+//    CGFloat gridHeight = (self.frame.size.height - self.gridSpacingY * (self.rows - 1)) / self.rows;
+//    
+//    view.frame = CGRectMake((gridWidth + self.gridSpacingX) * col, (gridHeight + self.gridSpacingY) * row, (gridWidth + self.gridSpacingX) * nextCell.colSpan - self.gridSpacingX , (gridHeight + self.gridSpacingY) * nextCell.rowSpan - self.gridSpacingY);
     
     nextCell.view = view;
     

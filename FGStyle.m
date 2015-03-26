@@ -7,117 +7,24 @@
 //
 
 #import "FGStyle.h"
+#import <objc/runtime.h>
+#import "UIView+FGStylable.h"
 
 @implementation FGStyle
 
 static UIView *_view;
 
-static BOOL _setFrame;
-
-static CGFloat _left;
-static CGFloat _right;
-static CGFloat _top;
-static CGFloat _bottom;
-static CGFloat _height;
-static CGFloat _width;
-
 
 + (void) updateStyleOfView: (UIView *) view withBlock: (FGStyleBlock) block
 {
     _view = view;
-    _setFrame = false;
-    _left = NAN;
-    _right = NAN;
-    _top = NAN;
-    _bottom = NAN;
-    _height = NAN;
-    _width = NAN;
-
+    
     if ([_view respondsToSelector: @selector(beginUpdateStyle)]) {
         [_view performSelector: @selector(beginUpdateStyle)];
     }
     @try {
         if(block != nil){
             block(_view);
-        }
-        if (_setFrame) {
-            CGRect frame;
-            BOOL preferSizeCalculated = NO;
-            CGSize preferSize;
-            if (!isnan(_left)) {
-                frame.origin.x = _left;
-                if (!isnan(_right)) {
-                    frame.size.width = _view.superview.frame.size.width - _left - _right;
-                }else if(!isnan(_width)){
-                    frame.size.width = _width;
-                }else{
-                    if (!preferSizeCalculated){
-                        preferSize = [_view sizeThatFits: _view.frame.size];
-                        preferSizeCalculated = YES;
-                    }
-                    frame.size.width = preferSize.width;
-                }
-            }else if(!isnan(_right)){
-                if(!isnan(_width)){
-                    frame.origin.x = _view.superview.frame.size.width - _right - _width;
-                    frame.size.width = _width;
-                }else{
-                    if (!preferSizeCalculated){
-                        preferSize = [_view sizeThatFits: _view.frame.size];
-                        preferSizeCalculated = YES;
-                    }
-                    frame.size.width = preferSize.width;
-                    frame.origin.x = _view.superview.frame.size.width - _right - preferSize.width;
-                }
-            }else if(!isnan(_width)){
-                frame.size.width = _width;
-                frame.origin.x = (_view.superview.frame.size.width - _width) / 2;
-            }else{
-                if (!preferSizeCalculated){
-                    preferSize = [_view sizeThatFits: _view.frame.size];
-                    preferSizeCalculated = YES;
-                }
-                frame.size.width = preferSize.width;
-                frame.origin.x = (_view.superview.frame.size.width - preferSize.width) / 2;
-            }
-            if (!isnan(_top)) {
-                frame.origin.y = _top;
-                if (!isnan(_bottom)) {
-                    frame.size.height = _view.superview.frame.size.height - _top - _bottom;
-                }else if(!isnan(_height)){
-                    frame.size.height = _height;
-                }else{
-                    if (!preferSizeCalculated){
-                        preferSize = [_view sizeThatFits: _view.frame.size];
-                        preferSizeCalculated = YES;
-                    }
-                    frame.size.height = preferSize.height;
-                }
-            }else if(!isnan(_bottom )){
-                if(!isnan(_height )){
-                    frame.origin.y = _view.superview.frame.size.height - _bottom - _height;
-                    frame.size.height = _height;
-                }else{
-                    if (!preferSizeCalculated){
-                        preferSize = [_view sizeThatFits: _view.frame.size];
-                        preferSizeCalculated = YES;
-                    }
-                    frame.size.height = preferSize.height;
-                    frame.origin.y = _view.superview.frame.size.height - _bottom - preferSize.height;
-                }
-            }else if(!isnan(_height )){
-                frame.size.height = _height;
-                frame.origin.y = (_view.superview.frame.size.height - _height) / 2;
-            }else{
-                if (!preferSizeCalculated){
-                    preferSize = [_view sizeThatFits: _view.frame.size];
-                    preferSizeCalculated = YES;
-                }
-                frame.size.height = preferSize.height;
-                frame.origin.y = (_view.superview.frame.size.height - preferSize.height) / 2;
-            }
-            
-            _view.frame = frame;
         }
     }
     @finally {
@@ -133,38 +40,114 @@ static CGFloat _width;
 
 + (void)top:(CGFloat)top
 {
-    _setFrame = true;
-    _top = top;
+    if([_view respondsToSelector:@selector(styleWithTop:)])
+    {
+        [_view styleWithTop: top];
+    }
 }
 
 + (void)right:(CGFloat)right
 {
-    _setFrame = true;
-    _right = right;
+    if([_view respondsToSelector:@selector(styleWithRight:)])
+    {
+        [_view styleWithRight: right];
+    }
 }
 
 + (void) bottom:(CGFloat)bottom
 {
-    _setFrame = true;
-    _bottom = bottom;
+    if([_view respondsToSelector:@selector(styleWithBottom:)])
+    {
+        [_view styleWithBottom: bottom];
+    }
 }
 
 + (void) left:(CGFloat)left
 {
-    _setFrame = true;
-    _left = left;
+    if([_view respondsToSelector:@selector(styleWithLeft:)])
+    {
+        [_view styleWithLeft: left];
+    }
+}
+
++ (void)top:(CGFloat)top right:(CGFloat)right bottom:(CGFloat)bottom left:(CGFloat)left
+{
+    [self top: top];
+    [self right:right];
+    [self bottom:bottom];
+    [self left:left];
+}
+
++ (void)topBottom:(CGFloat)topBottom leftRight:(CGFloat)leftRight
+{
+    [self top: topBottom];
+    [self right:leftRight];
+    [self bottom:topBottom];
+    [self left:leftRight];
 }
 
 + (void)height:(CGFloat)height
 {
-    _setFrame = true;
-    _height = height;
+    if([_view respondsToSelector:@selector(styleWithHeight:)])
+    {
+        [_view styleWithHeight: height];
+    }
 }
 
 + (void)width:(CGFloat)width
 {
-    _setFrame = true;
-    _width = width;
+    if([_view respondsToSelector:@selector(styleWithWidth:)])
+    {
+        [_view styleWithWidth: width];
+    }
+}
+
++ (void)topPercentage:(CGFloat)topPercentage
+{
+    if([_view respondsToSelector:@selector(styleWithTopPercentage:)])
+    {
+        [_view styleWithTopPercentage: topPercentage];
+    }
+}
+
++ (void)rightPercentage:(CGFloat)rightPercentage
+{
+    if([_view respondsToSelector:@selector(styleWithRightPercentage:)])
+    {
+        [_view styleWithRightPercentage: rightPercentage];
+    }
+}
+
++ (void) bottomPercentage:(CGFloat)bottomPercentage
+{
+    if([_view respondsToSelector:@selector(styleWithBottomPercentage:)])
+    {
+        [_view styleWithBottomPercentage: bottomPercentage];
+    }
+}
+
++ (void) leftPercentage:(CGFloat)leftPercentage
+{
+    if([_view respondsToSelector:@selector(styleWithLeftPercentage:)])
+    {
+        [_view styleWithLeftPercentage: leftPercentage];
+    }
+}
+
++ (void)heightPercentage:(CGFloat)heightPercentage
+{
+    if([_view respondsToSelector:@selector(styleWithHeightPercentage:)])
+    {
+        [_view styleWithHeightPercentage: heightPercentage];
+    }
+}
+
++ (void)widthPercentage:(CGFloat)widthPercentage
+{
+    if([_view respondsToSelector:@selector(styleWithWidthPercentage:)])
+    {
+        [_view styleWithWidthPercentage: widthPercentage];
+    }
 }
 
 + (void)fontSize:(CGFloat)fontSize
@@ -209,10 +192,55 @@ static CGFloat _width;
     _view.layer.cornerRadius = borderRadius;
 }
 
-+ (void)customStyle:(NSString *)key value:(id)value
++ (void)customStyleWithKey:(NSString *)key value:(id)value
 {
     if ([_view respondsToSelector: @selector(styleWithCustomKey:value:)]) {
         [_view performSelector:@selector(styleWithCustomKey:value:) withObject:key withObject:value];
+    }
+}
+
++ (void)customStyleWithBlock:(FGStyleBlock)block
+{
+    if(block != nil){
+        block(_view);
+    }
+}
+
++ (void) contentHuggingPriority:(UILayoutPriority) priority
+{
+    [_view setContentHuggingPriority:priority forAxis:UILayoutConstraintAxisHorizontal];
+    [_view setContentHuggingPriority:priority forAxis:UILayoutConstraintAxisVertical];
+}
+
++ (void) contentHuggingHorizontalPriority:(UILayoutPriority) horizontalPriority verticalPriority: (UILayoutPriority) verticalPriority
+{
+    [_view setContentHuggingPriority:horizontalPriority forAxis:UILayoutConstraintAxisHorizontal];
+    [_view setContentHuggingPriority:verticalPriority forAxis:UILayoutConstraintAxisVertical];
+}
+
++ (void) contentCompressionResistancePriority:(UILayoutPriority) priority
+{
+    [_view setContentCompressionResistancePriority:priority forAxis:UILayoutConstraintAxisHorizontal];
+    [_view setContentCompressionResistancePriority:priority forAxis:UILayoutConstraintAxisVertical];
+}
+
++ (void) contentCompressionResistanceHorizontalPriority:(UILayoutPriority) horizontalPriority verticalPriority: (UILayoutPriority) verticalPriority
+{
+    [_view setContentCompressionResistancePriority:horizontalPriority forAxis:UILayoutConstraintAxisHorizontal];
+    [_view setContentCompressionResistancePriority:verticalPriority forAxis:UILayoutConstraintAxisVertical];
+}
+
++ (void)horizontalCenter:(CGFloat)horizontalCenter
+{
+    if ([_view respondsToSelector:@selector(styleWithHorizontalCenter:)]) {
+        [_view styleWithHorizontalCenter:horizontalCenter];
+    }
+}
+
++ (void)verticalCenter:(CGFloat)verticalCenter
+{
+    if ([_view respondsToSelector:@selector(styleWithVerticalCenter:)]) {
+        [_view styleWithVerticalCenter:verticalCenter];
     }
 }
 

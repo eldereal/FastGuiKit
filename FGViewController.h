@@ -15,10 +15,16 @@
 
 + (void) viewController: (FGOnGuiBlock) onGui;
 
++ (void) viewController: (FGOnGuiBlock) onGui styleClass: (NSString *) styleClass;
+
 @end
 
-@interface FGViewController : UIViewController<FGContext>
+@interface FGViewController : UIViewController
+
+- (NSString *) viewStyleClass;
 
 - (void) onGui;
+
+- (void) styleSheet;
 
 @end

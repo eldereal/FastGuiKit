@@ -13,9 +13,25 @@
 
 + (void) beginGroup;
 
-+ (void) beginCustomGroup;
++ (void) beginGroupWithNextView;
 
-+ (void) beginGroupWithClass: (NSString *) styleClass;
++ (void) beginGroupWithStyleClass: (NSString *) styleClass;
+
++ (void) beginVerticalGroup;
+
++ (void) beginVerticalGroupWithNextView;
+
++ (void) beginVerticalGroupWithStyleClass: (NSString *) styleClass;
+
++ (void) beginHorizontalGroup;
+
++ (void) beginHorizontalGroupWithNextView;
+
++ (void) beginHorizontalGroupWithStyleClass: (NSString *) styleClass;
+
+//+ (void) beginVerticalScrollGroup;
+//
+//+ (void) beginVerticalScrollGroupWithStyleClass: (NSString *) styleClass;
 
 + (void) endGroup;
 

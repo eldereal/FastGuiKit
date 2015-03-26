@@ -22,4 +22,16 @@
     return [NSString stringWithFormat:@"_caller@%lx", val.longValue];
 }
 
++ (NSString *)herePositionAsReuseId
+{
+    NSArray *arr = [NSThread callStackReturnAddresses];
+    NSNumber *val = arr[1];
+    return [NSString stringWithFormat:@"_caller@%lx", val.longValue];
+}
+
++ (NSString *)memoryPositionAsReuseIdOfObject:(id)obj
+{
+    return [NSString stringWithFormat:@"_object@%lx", (unsigned long) obj];
+}
+
 @end

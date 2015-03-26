@@ -22,6 +22,8 @@
  */
 - (void) customViewControllerWithReuseId: (NSString *) reuseId initBlock: (FGInitCustomViewControllerBlock) initBlock;
 
+- (void) dismissViewController;
+
 /**
  * display a custom view with context's layout.
  */

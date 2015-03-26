@@ -27,17 +27,19 @@ static id<FGContext> _context = nil;
     return _context;
 }
 
-static NSMutableArray *_styleArray;
+static __weak UIView *_styleTarget;
 
-+ (NSMutableArray *) styleArray
++ (UIView *) styleTarget
 {
-    return _styleArray;
+    return _styleTarget;
 }
 
-+ (void) setStyleArray: (NSMutableArray *) styleArray
++ (void) setStyleTarget: (UIView *) styleTarget
 {
-    _styleArray = styleArray;
+    _styleTarget = styleTarget;
 }
+
+
 
 static NSArray *_styleClass;
 
@@ -53,29 +55,25 @@ static NSArray *_styleClass;
 
 + (void) pushContext:(id<FGContext>)context
 {
+//    NSArray *stack = [NSThread callStackSymbols];
+//    printf("push context %s\n    %s\n    %s\n", [NSStringFromClass([context class]) UTF8String], [(NSString *) stack[1] UTF8String], [(NSString *) stack[2] UTF8String]);
+    id<FGContext> ctx = self.context;
+    while (ctx != nil) {
+        if (ctx == context) {
+            [[NSException exceptionWithName:@"Redundant context" reason:@"You have pushed a context that is already in the context tree" userInfo:nil] raise];
+        }
+        ctx = ctx.parentContext;
+    }
     context.parentContext = self.context;
     self.context = context;
 }
 
 + (void) popContext
 {
+//    printf("pop context %s\n", [NSStringFromClass([self.context class]) UTF8String]);
     if (self.context != nil) {
         self.context = self.context.parentContext;
     }
-}
-
-+ (void) callOnGui: (FGOnGuiBlock) onGui withContext: (id<FGContext>) context
-{
-    //dispatch_async(dispatch_get_main_queue(), ^{
-        assert(self.context == nil);
-        [self pushContext:context];
-        //@try {
-            onGui();
-        //}@finally {
-            [self popContext];
-        //}
-        assert(self.context == nil);
-    //});
 }
 
 + (void) customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
@@ -83,33 +81,41 @@ static NSArray *_styleClass;
     [self.context customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
++ (void)dismissViewController
+{
+    [self.context dismissViewController];
+}
+
 + (id) customViewWithClass:(NSString *)styleClass reuseId: (NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock: (FGGetCustomViewResultBlock) resultBlock
 {
-    NSMutableArray *array = nil;
-    if (styleClass != nil) {
-        self.styleClass = [styleClass componentsSeparatedByString:@" "];
-        self.styleArray = [NSMutableArray array];
-        [self.context styleSheet];
-        array = self.styleArray;
-    }
-    
-    self.styleArray = nil;
     return [self.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:^(UIView *view) {
         [FGStyle updateStyleOfView:view withBlock:^(UIView *view) {
-            for (FGStyleBlockHolder *holder in array) {
-                [holder notify: view];
-            }
+            self.styleClass = [styleClass componentsSeparatedByString:@" "];
+            self.styleTarget = view;
+            [self.context styleSheet];
         }];
     }];
 }
 
-+ (void)styleOfClass:(NSString *)styleClass block:(FGStyleBlock)block
++ (void) styleOfClass:(NSString *)styleClass block:(FGStyleBlock)block
 {
     if ([self.styleClass bk_any:^BOOL(NSString *viewStyleClass) {
         return [styleClass isEqualToString:viewStyleClass];
     }]) {
-        [self.styleArray addObject:[FGStyleBlockHolder holderWithBlock:block]];
+        block(self.styleTarget);
     }
+}
+
++ (void)styleOfType:(Class)type block:(FGStyleBlock)block
+{
+    if ([self.styleTarget isKindOfClass:type]) {
+        block(self.styleTarget);
+    }
+}
+
++ (void) styleOfAll:(FGStyleBlock)block
+{
+    block(self.styleTarget);
 }
 
 + (id) customData:(void*) key data:(NSDictionary *)data
@@ -117,9 +123,53 @@ static NSArray *_styleClass;
     return [self.context customData:key data:data];
 }
 
++ (void) reloadGuiProtectContext
+{
+    id ctx = self.context;
+    [self.context reloadGui];
+    if (self.context != ctx) {
+        [[NSException exceptionWithName:@"Unbalanced push/pop gui context" reason:@"You may have called less/more/unmatched EndXXX with BeginXXX" userInfo:nil] raise];
+    }
+}
+
 + (void) reloadGui
 {
     dispatch_async(dispatch_get_main_queue(), ^{
+        [self reloadGuiProtectContext];
+    });
+}
+
++ (void)reloadGuiSyncWithContext:(id<FGContext>)context
+{
+    if ([NSThread isMainThread]) {
+        [self pushContext:context];
+        [self reloadGuiProtectContext];
+        [self popContext];
+    }else{
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            [self pushContext:context];
+            [self reloadGuiProtectContext];
+            [self popContext];
+        });
+    }
+}
+
++ (void)reloadGuiWithBeforeBlock:(FGVoidBlock)before withAfterBlock:(FGVoidBlock)after
+{
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (before != nil) {
+            before();
+        }
+        [self reloadGuiProtectContext];
+        if (after != nil) {
+            after();
+        }
+    });
+}
+
++ (void)reloadGuiAfterTimeInterval:(NSTimeInterval)after
+{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(after * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         [self.context reloadGui];
     });
 }

@@ -8,23 +8,23 @@
 
 #import <UIKit/UIKit.h>
 #import "FastGui.h"
-#import "FGContext.h"
+#import "FGTable.h"
 
 @interface FastGui (FGTableViewController)
 
 + (void) tableViewController: (FGOnGuiBlock) onGui;
 
-+ (void) tableSectionHeader: (NSString *) title;
-
-+ (void) tableSectionFooter: (NSString *) title;
-
-+ (BOOL) tableCell: (NSString *) title;
++ (void) tableViewController: (FGOnGuiBlock) onGui styleClass: (NSString *) styleClass;
 
 @end
 
-@interface FGTableViewController : UITableViewController<FGContext>
+@interface FGTableViewController : UITableViewController
+
+- (NSString *) tableViewStyleClass;
 
 - (void) onGui;
+
+- (void) styleSheet;
 
 @end
 

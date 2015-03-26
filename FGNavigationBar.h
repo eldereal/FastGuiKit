@@ -20,7 +20,7 @@
 
 + (void) navigationTitle: (NSString *) title;
 
-+ (void) navigationTitleView;
++ (void) navigationTitleWithNextView;
 
 + (void) navigationBarRightItems;
 

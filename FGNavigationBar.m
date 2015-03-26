@@ -9,6 +9,7 @@
 #import <objc/runtime.h>
 #import "FGNavigationBar.h"
 #import "FGTypes.h"
+#import "UIView+FGStylable.h"
 #import "FGReuseItemPool.h"
 
 typedef NS_ENUM(NSUInteger, FGNavigationBarMode)
@@ -20,8 +21,6 @@ typedef NS_ENUM(NSUInteger, FGNavigationBarMode)
 };
 
 @interface FGNavigationBar : NSObject <FGContext>
-
-@property (nonatomic, assign) BOOL enabled;
 
 @property (nonatomic, assign) FGNavigationBarMode mode;
 
@@ -108,7 +107,7 @@ static NSObject *beacon = nil;
     }
 }
 
-+ (void) navigationTitleView
++ (void) navigationTitleWithNextView
 {
     [self customData:SetTitleViewMethodKey data:nil];
 }
@@ -131,14 +130,6 @@ static NSObject *beacon = nil;
 
 @synthesize parentContext;
 
-- (UINavigationItem *) navigationItem
-{
-    if(!self.enabled){
-        return nil;
-    }
-    return ((UINavigationController *)self.parentContext).navigationItem;
-}
-
 - (void) reloadGui
 {
     [parentContext reloadGui];
@@ -154,10 +145,22 @@ static NSObject *beacon = nil;
     [parentContext customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
+- (void)dismissViewController
+{
+    [parentContext dismissViewController];
+}
+
 - (BOOL) beginNavigationBar
 {
-    self.enabled = [self.parentContext isKindOfClass:[UIViewController class]];
-    if (!self.enabled) {
+    id<FGContext> ctx = self.parentContext;
+    while (ctx!=nil) {
+        if([ctx isKindOfClass:[UIViewController class]]){
+            _navigationItem = ((UIViewController*)ctx).navigationItem;
+            break;
+        }
+        ctx = ctx.parentContext;
+    }
+    if (self.navigationItem == nil) {
         return NO;
     }
     self.mode = FGNavigationBarModeNone;
@@ -174,7 +177,7 @@ static NSObject *beacon = nil;
 
 - (id) customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
-    if (!self.enabled) {
+    if (self.navigationItem == nil) {
         return nil;
     }
     if (self.mode == FGNavigationBarModeTitle) {
@@ -183,12 +186,12 @@ static NSObject *beacon = nil;
         if (titleView == nil || ![titleView.reuseId isEqualToString: reuseId]) {
             titleView = nil;
         }
-        __weak FGNavigationBar *weakSelf = self;
-        UIView * newTitleView = initBlock(titleView, ^(){
-            [weakSelf reloadGui];
-        });
+        UIView * newTitleView = initBlock(titleView);
         if (newTitleView != titleView) {
             self.navigationItem.titleView = newTitleView;
+            newTitleView.reuseId = reuseId;
+            [newTitleView sizeStyleSetFrame];
+            [newTitleView positionStyleDisabledWithTip: @"views in navigation bar don't support position styles"];
         }
         applyStyleBlock(newTitleView);
         if (resultBlock == nil) {
@@ -197,16 +200,20 @@ static NSObject *beacon = nil;
             return resultBlock(newTitleView);
         }
     }else{
-        return [self customBarButtonItemWithReuseId:reuseId initBlock:^(UIBarButtonItem * item, FGVoidBlock notifyResult) {
+        return [self customBarButtonItemWithReuseId:reuseId initBlock:^(UIBarButtonItem * item) {
             UIView *innerView;
             if (item == nil) {
-                innerView = initBlock(nil, notifyResult);
+                innerView = initBlock(nil);
+                [innerView sizeStyleSetFrame];
+                [innerView positionStyleDisabledWithTip: @"views in navigation bar don't support position styles"];
                 item = [[UIBarButtonItem alloc] initWithCustomView: innerView];
             }else{
                 innerView = item.customView;
-                UIView *newInnerView = initBlock(innerView, notifyResult);
+                UIView *newInnerView = initBlock(innerView);
                 if (newInnerView != innerView) {
                     item = [[UIBarButtonItem alloc] initWithCustomView: newInnerView];
+                    [newInnerView sizeStyleSetFrame];
+                    [newInnerView positionStyleDisabledWithTip: @"views in navigation bar don't support position styles"];
                 }
             }
             return item;
@@ -222,9 +229,9 @@ static NSObject *beacon = nil;
     }
 }
 
-- (id) customBarButtonItemWithReuseId: (NSString *)reuseId initBlock: (UIBarButtonItem *(^)(UIBarButtonItem *, FGVoidBlock)) initBlock resultBlock: (id(^)(UIBarButtonItem *)) resultBlock applyStyleBlock:(void(^)(UIBarButtonItem *))applyStyleBlock
+- (id) customBarButtonItemWithReuseId: (NSString *)reuseId initBlock: (UIBarButtonItem *(^)(UIBarButtonItem *)) initBlock resultBlock: (id(^)(UIBarButtonItem *)) resultBlock applyStyleBlock:(void(^)(UIBarButtonItem *))applyStyleBlock
 {
-    if (!self.enabled) {
+    if (self.navigationItem == nil) {
         return nil;
     }
     FGReuseItemPool *pool;
@@ -233,15 +240,12 @@ static NSObject *beacon = nil;
     }else if(self.mode == FGNavigationBarModeRight){
         pool = self.navigationItem.rightPool;
     }else{
-        printf("You must put views in left/right/title of a navigation item. Otherwise this view will be ignored");
+        printf("You must put views in left/right/title of a navigation item. Otherwise this view will be ignored\n");
         return nil;
     }
     
     BOOL isNew;
-    __weak FGNavigationBar *weakSelf = self;
-    UIBarButtonItem *item = (UIBarButtonItem *)[pool updateItem:reuseId initBlock:initBlock notifyBlock:^(){
-        [weakSelf reloadGui];
-    } outputIsNewView:&isNew];
+    UIBarButtonItem *item = (UIBarButtonItem *)[pool updateItem:reuseId initBlock:initBlock outputIsNewView:&isNew];
     
     item.applyStyleHolder = [FGNavigationBarStyleBlockHolder holderWithBlock:applyStyleBlock];
     if (resultBlock == nil) {
@@ -254,7 +258,7 @@ static NSObject *beacon = nil;
 
 - (id)customData:(void *)key data:(NSDictionary *)data
 {
-    if (!self.enabled) {
+    if (self.navigationItem == nil) {
         return nil;
     }
     if(key == SetTitleMethodKey){
@@ -269,7 +273,7 @@ static NSObject *beacon = nil;
     }else if(key == EndMethodKey){
         [self endNavigationBar];
     }else{
-        return nil;
+        return [parentContext customData:key data:data];
     }
              
     return nil;
@@ -277,7 +281,7 @@ static NSObject *beacon = nil;
 
 - (void) navigationBarLeftItemsWithBackButton: (BOOL) showBackButton
 {
-    if (!self.enabled) {
+    if (self.navigationItem == nil) {
         return;
     }
     self.navigationItem.leftItemsSupplementBackButton = showBackButton;
@@ -287,7 +291,7 @@ static NSObject *beacon = nil;
 
 - (void) navigationTitle: (NSString *) title
 {
-    if (!self.enabled) {
+    if (self.navigationItem == nil) {
         return;
     }
     self.navigationItem.title = title;
@@ -305,23 +309,22 @@ static NSObject *beacon = nil;
 
 - (void) endNavigationBar
 {
-    if (!self.enabled) {
-        return;
-    }
-    [self.navigationItem.leftPool finishUpdateItems:nil needRemove:nil];
-    NSArray *leftItems = [NSArray arrayWithArray: self.navigationItem.leftPool.items];
-    self.navigationItem.leftBarButtonItems = leftItems;
-    for (UIBarButtonItem *item in leftItems) {
-        [item.applyStyleHolder notify: item];
-        item.applyStyleHolder = nil;
-    }
-    
-    [self.navigationItem.rightPool finishUpdateItems:nil needRemove:nil];
-    NSArray *rightItems = [NSArray arrayWithArray: self.navigationItem.rightPool.items];
-    self.navigationItem.rightBarButtonItems = rightItems;
-    for (UIBarButtonItem *item in rightItems) {
-        [item.applyStyleHolder notify: item];
-        item.applyStyleHolder = nil;
+    if (self.navigationItem != nil) {
+        [self.navigationItem.leftPool finishUpdateItems:nil needRemove:nil];
+        NSArray *leftItems = [NSArray arrayWithArray: self.navigationItem.leftPool.items];
+        self.navigationItem.leftBarButtonItems = leftItems;
+        for (UIBarButtonItem *item in leftItems) {
+            [item.applyStyleHolder notify: item];
+            item.applyStyleHolder = nil;
+        }
+        
+        [self.navigationItem.rightPool finishUpdateItems:nil needRemove:nil];
+        NSArray *rightItems = [NSArray arrayWithArray: self.navigationItem.rightPool.items];
+        self.navigationItem.rightBarButtonItems = rightItems;
+        for (UIBarButtonItem *item in rightItems) {
+            [item.applyStyleHolder notify: item];
+            item.applyStyleHolder = nil;
+        }
     }
     [FastGui popContext];
 }
@@ -370,7 +373,6 @@ static void * StyleBlockHolderPropertyKey = &StyleBlockHolderPropertyKey;
 
 static void * LeftPoolPropertyKey = &LeftPoolPropertyKey;
 static void * RightPoolPropertyKey = &RightPoolPropertyKey;
-
 
 @implementation UINavigationItem (FGNavigationBar)
 

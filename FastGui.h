@@ -12,17 +12,9 @@
 
 @interface FastGui : NSObject
 
-+ (void) callOnGui: (FGOnGuiBlock) onGui withContext: (id<FGContext>) context;
-
-
 + (void) pushContext: (id<FGContext>) context;
 
 + (void) popContext;
-
-/**
- * present a custom view controller if possible.
- */
-+ (void) customViewControllerWithReuseId: (NSString *) reuseId initBlock: (FGInitCustomViewControllerBlock) initBlock;
 
 /**
  * display a custom view with context's layout.
@@ -33,6 +25,24 @@
 
 + (void) styleOfClass: (NSString *) styleClass block: (FGStyleBlock) block;
 
++ (void) styleOfType: (Class) type block: (FGStyleBlock) block;
+
++ (void) styleOfAll: (FGStyleBlock)block;
+
 + (void) reloadGui;
+
++ (void) reloadGuiSyncWithContext: (id<FGContext>) context;
+
++ (void) reloadGuiWithBeforeBlock: (FGVoidBlock) before withAfterBlock: (FGVoidBlock) after;
+
++ (void) reloadGuiAfterTimeInterval: (NSTimeInterval) after;
+
+/**
+ * present a custom view controller if possible.
+ */
++ (void) customViewControllerWithReuseId: (NSString *) reuseId initBlock: (FGInitCustomViewControllerBlock) initBlock;
+
++ (void) dismissViewController;
+
 
 @end

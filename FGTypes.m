@@ -78,16 +78,6 @@ static void * NotifyHolderPropertyKey = &NotifyHolderPropertyKey;
     return objc_getAssociatedObject(self, ReuseIdPropertyKey);
 }
 
-- (FGNotifyCustomViewResultHolder *)notifyHolder
-{
-    return objc_getAssociatedObject(self, NotifyHolderPropertyKey);
-}
-
--(void)setNotifyHolder:(FGNotifyCustomViewResultHolder *)notifyHolder
-{
-    objc_setAssociatedObject(self, NotifyHolderPropertyKey, notifyHolder, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
 @end
 
 

@@ -57,9 +57,7 @@
 
 - (void)reloadGui
 {
-    [FastGui callOnGui:^{
-        [self onGui];
-    } withContext:self];
+    [self onGui];
 }
 
 - (void)viewDidLoad
@@ -82,6 +80,11 @@
 - (void)customViewControllerWithReuseId:(NSNumber *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
 {
     
+}
+
+- (void)dismissViewController
+{
+    [parentContext dismissViewController];
 }
 
 - (id)customViewWithReuseId:(NSNumber *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock

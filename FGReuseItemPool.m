@@ -55,8 +55,12 @@
     [self.needRemoveItems removeAllObjects];
 }
 
-- (id<FGWithReuseId>) updateItem: (NSString *) reuseId initBlock:(FGInitReuseItemBlock)initBlock notifyBlock: (FGVoidBlock) notifyBlock outputIsNewView: (BOOL *)isNewView;
+- (id<FGWithReuseId>) updateItem: (NSString *) reuseId initBlock:(FGInitReuseItemBlock)initBlock outputIsNewView: (BOOL *)isNewView;
 {
+    BOOL noOutIsNew;
+    if (isNewView == NULL) {
+        isNewView = &noOutIsNew;
+    }
     UIView *foundReuseView = nil;
     for (NSUInteger i = 0; i < self.oldItems.count; i++) {
         UIView *view = self.oldItems[i];
@@ -69,7 +73,7 @@
             break;
         }
     }
-    id<FGWithReuseId> view = initBlock(foundReuseView, notifyBlock);
+    id<FGWithReuseId> view = initBlock(foundReuseView);
     view.reuseId = reuseId;
     [self.mutableItems addObject: view];
     *isNewView = view != nil && view != foundReuseView;

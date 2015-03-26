@@ -14,13 +14,12 @@ typedef void( ^ FGVoidBlock) ();
 typedef id(^ FGIdBlock)();
 
 typedef FGVoidBlock FGOnGuiBlock;
+typedef void (^FGViewBlock )(UIView *view);
 typedef void (^FGStyleBlock )(UIView *view);
 
 typedef UIViewController * (^FGInitCustomViewControllerBlock) (UIViewController * reuseViewController);
 
-
-
-typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView, FGVoidBlock notifyResult);
+typedef UIView * (^FGInitCustomViewBlock) (UIView * reuseView);
 
 typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 
@@ -63,8 +62,6 @@ typedef id( ^ FGGetCustomViewResultBlock) (UIView *view);
 @end
 
 @interface UIView (FastGui) <FGWithReuseId>
-
-@property (nonatomic, strong) FGNotifyCustomViewResultHolder * notifyHolder;
 
 @end
 

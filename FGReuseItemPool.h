@@ -10,7 +10,7 @@
 
 #import "FGTypes.h"
 
-typedef id<FGWithReuseId> (^FGInitReuseItemBlock) (id<FGWithReuseId> reuseItem, FGVoidBlock notifyResult);
+typedef id<FGWithReuseId> (^FGInitReuseItemBlock) (id<FGWithReuseId> reuseItem);
 
 @interface FGReuseItemPool : NSObject
 
@@ -18,7 +18,7 @@ typedef id<FGWithReuseId> (^FGInitReuseItemBlock) (id<FGWithReuseId> reuseItem, 
 
 - (void) prepareUpdateItems;
 
-- (id<FGWithReuseId>) updateItem: (NSString *) reuseId initBlock:(FGInitReuseItemBlock)initBlock notifyBlock: (FGVoidBlock) notifyBlock outputIsNewView: (BOOL *)isNewView;
+- (id<FGWithReuseId>) updateItem: (NSString *) reuseId initBlock:(FGInitReuseItemBlock)initBlock outputIsNewView: (BOOL *)isNewView;
 
 - (void) finishUpdateItems: (void(^)(id<FGWithReuseId>)) needAdd needRemove: (void(^)(id<FGWithReuseId>)) needRemove;
 

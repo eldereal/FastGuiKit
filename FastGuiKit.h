@@ -16,5 +16,10 @@
 #include "FGViewGroup.h"
 #include "FGViewGrid.h"
 #include "FGNavigationBar.h"
+#include "FGTable.h"
+#include "FGTableViewController.h"
+#include "FGTouchableView.h"
+#include "FGPushStyleSheetContext.h"
+#include "FGVerticalScrollView.h"
 
 #endif
