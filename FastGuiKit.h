@@ -21,5 +21,9 @@
 #include "FGTouchableView.h"
 #include "FGPushStyleSheetContext.h"
 #include "FGVerticalScrollView.h"
+#include "FGTextFieldInputView.h"
+
+#include "FastGui+UIPickerView.h"
+#include "FastGui+UIButton.h"
 
 #endif
