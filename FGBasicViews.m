@@ -187,66 +187,6 @@
     } resultBlock: nil];
 }
 
-+ (void)buttonWithTitle:(NSString *)title styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
-{
-    [self customViewWithClass:styleClass reuseId:[FGInternal callerPositionAsReuseId] initBlock:^UIView *(UIView *reuseView) {
-        UIButton *btn = (UIButton *) reuseView;
-        if (btn == nil) {
-            btn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [btn addTarget:btn action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
-        }
-        [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(id btn){
-            onClick();
-        }];
-        [UIView setAnimationsEnabled:NO];
-        [btn setTitle:title forState:UIControlStateNormal];
-        [UIView setAnimationsEnabled:YES];
-        return btn;
-    } resultBlock:nil];
-}
-
-+ (BOOL) toggleButtonWithTitle:(NSString *)title
-{
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:title styleClass: nil];
-}
-
-+ (BOOL)toggleButtonWithTitle:(NSString *)title styleClass:(NSString *)styleClass
-{
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:title styleClass: styleClass];
-}
-
-+ (BOOL)toggleButtonWithTitle:(NSString *)title selectedTitle:(NSString *)selectedTitle
-{
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:selectedTitle styleClass:nil];
-}
-
-+ (BOOL)toggleButtonWithTitle:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
-{
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] title: title selectedTitle:selectedTitle styleClass:styleClass];
-}
-
-+ (BOOL)toggleButtonWithReuseId:(NSString *)reuseId title:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
-{
-    NSNumber *ret = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UIButton *btn = (UIButton *) reuseView;
-        if (btn == nil){
-            btn = [UIButton buttonWithType:UIButtonTypeSystem];
-            [btn bk_addEventHandler:^(id sender) {
-                UIButton *btn = sender;
-                btn.selected = !btn.selected;
-                [FastGui reloadGui];
-            } forControlEvents:UIControlEventTouchUpInside];
-        }
-        [btn setTitle:title forState:UIControlStateNormal];
-        [btn setTitle:selectedTitle forState:UIControlStateSelected];
-        return btn;
-    } resultBlock:^id(UIView *view) {
-        UIButton *btn = (UIButton *) view;
-        return [NSNumber numberWithBool: btn.selected];
-    }];
-    return ret.boolValue;
-}
-
 + (NSString *) textField
 {
     return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:nil isPassword:NO];

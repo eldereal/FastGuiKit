@@ -45,15 +45,6 @@
 
 //+ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass;
 
-+ (void) buttonWithTitle: (NSString *) title styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
-
-+ (BOOL) toggleButtonWithTitle: (NSString *) title;
-
-+ (BOOL) toggleButtonWithTitle: (NSString *) title styleClass: (NSString *)styleClass;
-
-+ (BOOL) toggleButtonWithTitle: (NSString *) title selectedTitle: (NSString *) selectedTitle;
-
-+ (BOOL) toggleButtonWithTitle: (NSString *) title selectedTitle: (NSString *) selectedTitle styleClass: (NSString *)styleClass;
 
 + (NSString *) textField;
 
@@ -82,7 +73,6 @@
 + (void) activityIndicator;
 
 + (void) activityIndicatorWithStyleClass: (NSString *)styleClass;
-
 
 @end
 
