@@ -5,6 +5,10 @@
 //  Created by 易元 白 on 15/3/15.
 //  Copyright (c) 2015年 eldereal. All rights reserved.
 //
+#import <objc/runtime.h>
+#import <REKit/REKit.h>
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
 
 #import "FGTable.h"
 
@@ -15,8 +19,7 @@
 #import "UIView+applyStyleAfterAddedToSuperview.h"
 #import "UIView+FGStylable.h"
 #import "UIView+changingResult.h"
-#import <objc/runtime.h>
-#import <REKit/REKit.h>
+
 
 typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 {

@@ -9,6 +9,12 @@
 #import <UIKit/UIKit.h>
 #import "FGTypes.h"
 
+typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
+{
+    FGStyleFontWeightNormal = 0,
+    FGStyleFontWeightBold
+};
+
 @protocol FGStylable <NSObject>
 
 @optional
@@ -43,6 +49,8 @@
 
 
 - (void) styleWithFontSize: (NSNumber *) fontSize;
+
+- (void) styleWithFontWeight: (FGStyleFontWeight) fontWeight;
 
 - (void) styleWithColor: (UIColor *) color;
 
@@ -100,6 +108,8 @@
 
 
 + (void) fontSize: (CGFloat) fontSize;
+
++ (void) fontWeight: (FGStyleFontWeight) fontWeight;
 
 + (void) color: (UIColor *) color;
 

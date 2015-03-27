@@ -5,9 +5,11 @@
 //  Created by 易元 白 on 15/3/9.
 //  Copyright (c) 2015年 cn.myzgstudio. All rights reserved.
 //
-#import <BlocksKit/BlocksKit.h>
-#import <BlocksKit/NSObject+A2DynamicDelegate.h>
 #import <objc/runtime.h>
+#import <REKit/REKit.h>
+#import <BlocksKit/BlocksKit.h>
+#import <BlocksKit/BlocksKit+UIKit.h>
+
 #import "FGBasicViews.h"
 #import "FGTypes.h"
 #import "FGInternal.h"
@@ -187,9 +189,19 @@
     } resultBlock: nil];
 }
 
++ (void)buttonWithTitle:(NSString *)title onClick:(FGVoidBlock)onClick
+{
+    [self buttonWithReuseId:[FGInternal callerPositionAsReuseId] title:title styleClass:nil onClick:onClick];
+}
+
 + (void)buttonWithTitle:(NSString *)title styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
 {
-    [self customViewWithClass:styleClass reuseId:[FGInternal callerPositionAsReuseId] initBlock:^UIView *(UIView *reuseView) {
+    [self buttonWithReuseId:[FGInternal callerPositionAsReuseId] title:title styleClass:styleClass onClick:onClick];
+}
+
++ (void)buttonWithReuseId: (NSString *)reuseId title:(NSString *)title styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
+{
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
         UIButton *btn = (UIButton *) reuseView;
         if (btn == nil) {
             btn = [UIButton buttonWithType:UIButtonTypeCustom];
@@ -200,6 +212,34 @@
         }];
         [UIView setAnimationsEnabled:NO];
         [btn setTitle:title forState:UIControlStateNormal];
+        [UIView setAnimationsEnabled:YES];
+        return btn;
+    } resultBlock:nil];
+}
+
++ (void)imageButtonWithName:(NSString *)imageName onClick:(FGVoidBlock)onClick
+{
+    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:nil onClick:onClick];
+}
+
++ (void)imageButtonWithName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
+{
+    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:styleClass onClick:onClick];
+}
+
++ (void)imageButtonWithReuseId: (NSString *) reuseId imageName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
+{
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
+        UIButton *btn = (UIButton *) reuseView;
+        if (btn == nil) {
+            btn = [UIButton buttonWithType:UIButtonTypeCustom];
+            [btn addTarget:btn action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
+        }
+        [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(id btn){
+            onClick();
+        }];
+        [UIView setAnimationsEnabled:NO];
+        [btn setImage:[UIImage imageNamed:imageName] forState: UIControlStateNormal];
         [UIView setAnimationsEnabled:YES];
         return btn;
     } resultBlock:nil];

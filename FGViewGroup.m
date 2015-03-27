@@ -13,6 +13,7 @@
 #import "FGBasicViews.h"
 #import "UIView+FGStylable.h"
 #import <objc/runtime.h>
+#import <REKit/REKit.h>
 
 static void * EndGroupMethodKey = &EndGroupMethodKey;
 

@@ -47,6 +47,12 @@
 
 + (void) buttonWithTitle: (NSString *) title styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
 
++ (void) buttonWithTitle: (NSString *) title onClick: (FGVoidBlock) onClick;
+
++ (void) imageButtonWithName: (NSString *) imageName styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
+
++ (void) imageButtonWithName: (NSString *) imageName onClick: (FGVoidBlock) onClick;
+
 + (BOOL) toggleButtonWithTitle: (NSString *) title;
 
 + (BOOL) toggleButtonWithTitle: (NSString *) title styleClass: (NSString *)styleClass;

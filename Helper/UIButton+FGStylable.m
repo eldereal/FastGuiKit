@@ -12,6 +12,7 @@
 
 - (void)styleWithColor:(UIColor *)color
 {
+    self.tintColor = color;
     [self setTitleColor:color forState:UIControlStateNormal];
 }
 

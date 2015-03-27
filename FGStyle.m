@@ -163,6 +163,25 @@ static UIView *_view;
     }
 }
 
++ (void)fontWeight:(FGStyleFontWeight)fontWeight
+{
+    if ([_view respondsToSelector:@selector(styleWithFontWeight:)]) {
+        [_view styleWithFontWeight:fontWeight];
+    }else if ([_view respondsToSelector:@selector(font)] && [_view respondsToSelector: @selector(setFont:)]) {
+        id ret = [_view performSelector:@selector(font)];
+        if ([ret isKindOfClass:[UIFont class]]) {
+            UIFont *oldFont = (UIFont *)ret;
+            UIFont *newFont;
+            if (fontWeight == FGStyleFontWeightNormal) {
+                newFont = [UIFont fontWithDescriptor:[oldFont.fontDescriptor fontDescriptorWithSymbolicTraits:0] size:0];
+            }else{
+                newFont = [UIFont fontWithDescriptor:[oldFont.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold] size:0];
+            }
+            [_view performSelector:@selector(setFont:) withObject:newFont];
+        }
+    }
+}
+
 + (void)color:(UIColor *)color
 {
     if ([_view respondsToSelector: @selector(styleWithColor:)]) {
@@ -246,15 +265,3 @@ static UIView *_view;
 
 @end
 
-@interface UILabel(FGStyle)<FGStylable>
-
-@end
-
-@implementation UILabel(FGStyle)
-
-- (void)styleWithColor:(UIColor *)color
-{
-    self.textColor = color;
-}
-
-@end
