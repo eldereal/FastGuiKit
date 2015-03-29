@@ -100,24 +100,43 @@
     [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:callback styleClass:nil];
 }
 
-+ (void)touchableBlockWithCallback:(FGVoidBlock)callback styleClass:(NSString *)styleClass
++ (void) touchableBlockWithCallback:(FGVoidBlock)callback styleClass:(NSString *)styleClass
 {
     [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:callback styleClass:styleClass];
 }
 
-+ (void) touchableBlockWithReuseId:(NSString *) reuseId withCallback: (FGVoidBlock)callback styleClass:(NSString *)styleClass
++ (BOOL) touchableBlock
 {
-    [self customViewWithClass:styleClass reuseId:nil initBlock:^UIView *(UIView *reuseView) {
+    return [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:nil styleClass:nil];
+}
+
++ (BOOL) touchableBlockWithStyleClass:(NSString *)styleClass
+{
+    return [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:nil styleClass:styleClass];
+}
+
++ (BOOL) touchableBlockWithReuseId:(NSString *) reuseId withCallback: (FGVoidBlock)callback styleClass:(NSString *)styleClass
+{
+    UIControl *ctrl = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
         UIControl *ctrl = (UIControl *) reuseView;
         if (ctrl == nil) {
             ctrl = [[UIControl alloc] init];
         }
-        [ctrl bk_removeEventHandlersForControlEvents:UIControlEventTouchUpInside];
-        [ctrl bk_addEventHandler: ^(id sender){
-            callback();
-        } forControlEvents:UIControlEventTouchUpInside];
+        if (ctrl.changingResult == nil) {
+            [ctrl bk_removeEventHandlersForControlEvents:UIControlEventTouchUpInside];
+            if (callback == nil) {
+                [ctrl bk_addEventHandler: ^(UIControl * sender){
+                    [sender reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
+                } forControlEvents:UIControlEventTouchUpInside];
+            }else{
+                [ctrl bk_addEventHandler: ^(UIControl * sender){
+                    callback();
+                } forControlEvents:UIControlEventTouchUpInside];
+            }
+        }
         return ctrl;
-    } resultBlock:nil];
+    } resultBlock:^(id view){ return view; }];
+    return [(NSNumber *)ctrl.changingResult boolValue];
 }
 
 + (void)labelWithText:(NSString *)text
@@ -187,34 +206,6 @@
         img.image = [UIImage imageNamed: name];
         return img;
     } resultBlock: nil];
-}
-
-+ (void)imageButtonWithName:(NSString *)imageName onClick:(FGVoidBlock)onClick
-{
-    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:nil onClick:onClick];
-}
-
-+ (void)imageButtonWithName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
-{
-    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:styleClass onClick:onClick];
-}
-
-+ (void)imageButtonWithReuseId: (NSString *) reuseId imageName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
-{
-    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UIButton *btn = (UIButton *) reuseView;
-        if (btn == nil) {
-            btn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [btn addTarget:btn action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
-        }
-        [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(id btn){
-            onClick();
-        }];
-        [UIView setAnimationsEnabled:NO];
-        [btn setImage:[UIImage imageNamed:imageName] forState: UIControlStateNormal];
-        [UIView setAnimationsEnabled:YES];
-        return btn;
-    } resultBlock:nil];
 }
 
 + (NSString *) textField

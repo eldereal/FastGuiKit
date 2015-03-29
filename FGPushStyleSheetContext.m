@@ -7,6 +7,7 @@
 //
 
 #import "FGPushStyleSheetContext.h"
+#import <REKit/REKit.h>
 
 @interface FGPushStyleSheetContext : NSObject<FGContext>
 
@@ -30,6 +31,13 @@ static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
     [FastGui pushContext: ctx];
 }
 
++ (void)beginUseStyleSheetWithBlock:(FGVoidBlock)styleSheetBlock
+{
+    id styleSheet = [[NSObject alloc] init];
+    [styleSheet respondsToSelector:@selector(styleSheet) withKey:nil usingBlock:styleSheetBlock];
+    [self beginUseStyleSheet:styleSheet];
+}
+
 + (void)endUseStyleSheet
 {
     [self endUseStyleSheets];
@@ -39,6 +47,27 @@ static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
 {
     [self customData:EndUseStyleSheetsMethodKey data:nil];
 }
+
+//+ (void)useStyleSheet:(id<FGStyleSheet>)styleSheet withBlock:(FGVoidBlock)block
+//{
+//    [self beginUseStyleSheet:styleSheet];
+//    block();
+//    [self endUseStyleSheet];
+//}
+//
+//+ (void)useStyleSheets:(NSArray *)styleSheets withBlock:(FGVoidBlock)block
+//{
+//    [self beginUseStyleSheets:styleSheets];
+//    block();
+//    [self endUseStyleSheets];
+//}
+//
+//+ (void)useStyleSheetWithBlock:(FGVoidBlock)styleSheet withBlock:(FGVoidBlock)block
+//{
+//    [self beginUseStyleSheetWithBlock:styleSheet];
+//    block();
+//    [self endUseStyleSheet];
+//}
 
 @end
 

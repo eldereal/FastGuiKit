@@ -150,6 +150,13 @@ static UIView *_view;
     }
 }
 
++ (void)textAlign:(NSTextAlignment)textAlign
+{
+    if ([_view respondsToSelector:@selector(styleWithTextAlign:)]) {
+        [_view styleWithTextAlign:textAlign];
+    }
+}
+
 + (void)fontSize:(CGFloat)fontSize
 {
     if ([_view respondsToSelector: @selector(styleWithFontSize:)]) {
@@ -260,6 +267,27 @@ static UIView *_view;
 {
     if ([_view respondsToSelector:@selector(styleWithVerticalCenter:)]) {
         [_view styleWithVerticalCenter:verticalCenter];
+    }
+}
+
++ (void)hidden:(BOOL)hidden
+{
+    if ([_view respondsToSelector:@selector(styleWithHidden:)]) {
+        [_view styleWithHidden:hidden];
+    }
+}
+
++ (void)opacity:(CGFloat)opacity
+{
+    if ([_view respondsToSelector:@selector(styleWithOpacity:)]) {
+        [_view styleWithOpacity:opacity];
+    }
+}
+
++ (void)transition:(CGFloat)duration
+{
+    if ([_view respondsToSelector:@selector(styleWithTransition:)]) {
+        [_view styleWithTransition:duration];
     }
 }
 

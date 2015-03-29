@@ -11,9 +11,13 @@
 
 @interface FGPickerView : UIPickerView<UIPickerViewDataSource, UIPickerViewDelegate>
 
+- (instancetype)initWithObjectLabel: (NSString *(^)(id)) objectLabel;
+
 @property (nonatomic, strong) NSArray * items;
 
 @property (nonatomic) NSInteger selectedIndex;
+
+@property (copy) NSString *(^objectLabel)(id);
 
 @end
 
@@ -34,7 +38,7 @@
     FGPickerView *picker = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
         FGPickerView *picker = (FGPickerView *)reuseView;
         if (picker == nil) {
-            picker = [[FGPickerView alloc] init];
+            picker = [[FGPickerView alloc] initWithObjectLabel:^(id item){ return item; }];
         }
         picker.items = list;
         [picker reloadAllComponents];
@@ -45,13 +49,42 @@
     return picker.selectedIndex;
 }
 
++ (id)pickerWithObjectList:(NSArray *)list objectLabel:(NSString *(^)(id))objectLabel
+{
+    return [self pickerWithReuseId:[FGInternal callerPositionAsReuseId] objectList:list objectLabel:objectLabel styleClass:nil];
+}
+
++ (id)pickerWithObjectList:(NSArray *)list objectLabel:(NSString *(^)(id))objectLabel styleClass:(NSString *)styleClass
+{
+    return [self pickerWithReuseId:[FGInternal callerPositionAsReuseId] objectList:list objectLabel:objectLabel styleClass:styleClass];
+}
+
++ (id)pickerWithReuseId:(NSString *)reuseId objectList:(NSArray *)list objectLabel:(NSString *(^)(id))objectLabel styleClass:(NSString *)styleClass
+{
+    FGPickerView *picker = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
+        FGPickerView *picker = (FGPickerView *)reuseView;
+        if (picker == nil) {
+            picker = [[FGPickerView alloc] initWithObjectLabel:objectLabel];
+        }else{
+            picker.objectLabel = objectLabel;
+        }
+        picker.items = list;
+        [picker reloadAllComponents];
+        return picker;
+    } resultBlock:^id(UIView *view) {
+        return view;
+    }];
+    return list[picker.selectedIndex];
+}
+
 @end
 
 @implementation FGPickerView
 
-- (instancetype)init
+- (instancetype)initWithObjectLabel: (NSString *(^)(id)) objectLabel
 {
     if (self = [super init]) {
+        self.objectLabel = objectLabel;
         self.delegate = self;
         self.dataSource = self;
     }
@@ -70,7 +103,7 @@
 
 - (NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component
 {
-    return self.items[row];
+    return self.objectLabel(self.items[row]);
 }
 
 - (void)pickerView:(UIPickerView *)pickerView didSelectRow:(NSInteger)row inComponent:(NSInteger)component

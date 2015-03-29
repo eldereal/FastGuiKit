@@ -34,4 +34,12 @@
     return [NSString stringWithFormat:@"_object@%lx", (unsigned long) obj];
 }
 
++ (NSString *) staticReuseId: (__strong NSString **) pointer
+{
+    if (*pointer == nil) {
+        * pointer = [NSString stringWithFormat:@"_static@%lx", (unsigned long) pointer];
+    }
+    return *pointer;
+}
+
 @end

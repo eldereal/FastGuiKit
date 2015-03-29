@@ -30,4 +30,13 @@
 
 + (BOOL) toggleButtonWithSelected: (BOOL) selected title: (NSString *) title selectedTitle: (NSString *) selectedTitle styleClass: (NSString *)styleClass;
 
++ (void) imageButtonWithName: (NSString *) imageName styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
+
++ (void) imageButtonWithName: (NSString *) imageName onClick: (FGVoidBlock) onClick;
+
++ (BOOL) imageButtonWithName: (NSString *) imageName styleClass: (NSString *)styleClass;
+
++ (BOOL) imageButtonWithName: (NSString *) imageName;
+
+
 @end

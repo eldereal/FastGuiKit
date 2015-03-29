@@ -47,6 +47,7 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 
 - (void) styleWithHeightPercentage: (CGFloat) heightPercentage;
 
+- (void) styleWithTextAlign: (NSTextAlignment) textAlign;
 
 - (void) styleWithFontSize: (NSNumber *) fontSize;
 
@@ -57,6 +58,12 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 - (void) styleWithBackgroundColor: (UIColor *) backgroundColor;
 
 - (void) styleWithCustomKey: (NSString *) key value: (id) value;
+
+- (void) styleWithOpacity: (CGFloat) opacity;
+
+- (void) styleWithHidden: (CGFloat) hidden;
+
+- (void) styleWithTransition: (CGFloat) duration;
 
 - (void) beginUpdateStyle;
 
@@ -106,6 +113,7 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 
 + (void) verticalCenter: (CGFloat) verticalCenter;
 
++ (void) textAlign: (NSTextAlignment) textAlign;
 
 + (void) fontSize: (CGFloat) fontSize;
 
@@ -130,5 +138,11 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 + (void) contentCompressionResistancePriority:(UILayoutPriority) priority;
 
 + (void) contentCompressionResistanceHorizontalPriority:(UILayoutPriority) horizontalPriority verticalPriority: (UILayoutPriority) verticalPriority;
+
++ (void) hidden: (BOOL) hidden;
+
++ (void) opacity: (CGFloat) opacity;
+
++ (void) transition: (CGFloat) duration;
 
 @end

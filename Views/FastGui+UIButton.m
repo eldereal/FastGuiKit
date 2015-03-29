@@ -117,4 +117,53 @@
     return ret.boolValue;
 }
 
++ (void)imageButtonWithName:(NSString *)imageName onClick:(FGVoidBlock)onClick
+{
+    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:nil onClick:onClick];
+}
+
++ (void)imageButtonWithName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
+{
+    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:styleClass onClick:onClick];
+}
+
++ (BOOL)imageButtonWithName:(NSString *)imageName
+{
+    return [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:nil onClick:nil];
+}
+
++ (BOOL)imageButtonWithName:(NSString *)imageName styleClass:(NSString *)styleClass
+{
+    return [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:styleClass onClick:nil];
+}
+
++ (BOOL)imageButtonWithReuseId: (NSString *) reuseId imageName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
+{
+    UIButton *btn = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
+        UIButton *btn = (UIButton *) reuseView;
+        if (btn == nil) {
+            btn = [UIButton buttonWithType:UIButtonTypeCustom];
+            [btn addTarget:btn action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
+        }
+        if (btn.changingResult == nil) {
+            if (onClick == nil) {
+                [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(UIButton *btn){
+                    [btn reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
+                }];
+            }else{
+                [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(id btn){
+                    onClick();
+                }];
+            }
+        }
+        
+        [UIView setAnimationsEnabled:NO];
+        [btn setImage:[UIImage imageNamed:imageName] forState: UIControlStateNormal];
+        [UIView setAnimationsEnabled:YES];
+        return btn;
+    } resultBlock:^(id view){ return view; }];
+    return [(NSNumber*)btn.changingResult boolValue];
+}
+
+
 @end

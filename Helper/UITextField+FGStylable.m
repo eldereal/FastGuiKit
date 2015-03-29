@@ -1,15 +1,14 @@
 //
-//  UITextView+FGStylable.m
-//  train-helper
+//  UITextField+FGStylable.m
+//  exibitour
 //
-//  Created by 易元 白 on 15/3/22.
-//  Copyright (c) 2015年 eldereal. All rights reserved.
+//  Created by 易元 白 on 15/3/29.
+//  Copyright (c) 2015年 cn.myzgstudio. All rights reserved.
 //
 
-#import "UITextView+FGStylable.h"
-#import "FGStyle.h"
+#import "UITextField+FGStylable.h"
 
-@implementation UITextView (FGStylable)
+@implementation UITextField (FGStylable)
 
 - (void)styleWithColor:(UIColor *)color
 {

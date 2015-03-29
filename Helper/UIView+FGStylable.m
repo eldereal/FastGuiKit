@@ -9,7 +9,7 @@
 #import "UIView+FGStylable.h"
 #import <objc/runtime.h>
 #import <REKit/REKit.h>
-
+#import "FGInternal.h"
 
 
 @interface NSLayoutConstraint(FGStylable)
@@ -54,6 +54,28 @@ static void * ConstraintHolderPropertyKey = &ConstraintHolderPropertyKey;
 
 @end
 
+@interface UIView(FGStylablePrivate)
+
+@property (nonatomic, strong) NSMutableArray *finishUpdateStyleCallbacks;
+
+@end
+
+@implementation UIView(FGStylablePrivate)
+
+static void * FinishUpdateStyleCallbacksPropertyKey = &FinishUpdateStyleCallbacksPropertyKey;
+
+- (NSMutableArray *)finishUpdateStyleCallbacks
+{
+    return objc_getAssociatedObject(self, FinishUpdateStyleCallbacksPropertyKey);
+}
+
+- (void)setFinishUpdateStyleCallbacks:(NSMutableArray *)finishUpdateStyleCallbacks
+{
+    objc_setAssociatedObject(self, FinishUpdateStyleCallbacksPropertyKey, finishUpdateStyleCallbacks, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+@end
+
 @implementation UIView(FGStylable)
 
 static void* LeftConstraintPropertyKey = &LeftConstraintPropertyKey;
@@ -64,6 +86,7 @@ static void* WidthConstraintPropertyKey = &WidthConstraintPropertyKey;
 static void* HeightConstraintPropertyKey = &HeightConstraintPropertyKey;
 static void* HorizontalCenterConstraintPropertyKey = &HorizontalCenterConstraintPropertyKey;
 static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintPropertyKey;
+
 
 - (NSLayoutConstraint *) updateConstraint: (NSLayoutConstraint *)constraint view1: (id)view1 attribute:(NSLayoutAttribute)attr1 relatedBy:(NSLayoutRelation)relation toItem:(id)view2 attribute:(NSLayoutAttribute)attr2 multiplier:(CGFloat)multiplier constant:(CGFloat)c
 {
@@ -376,9 +399,63 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     }
 }
 
-- (void)endUpdateStyle
+- (void)styleWithOpacity:(CGFloat)opacity
 {
+    self.alpha = opacity;
+}
+
+- (void) styleWithHidden:(CGFloat)hidden
+{
+    if (hidden) {
+        [self.finishUpdateStyleCallbacks addObject:[FGVoidBlockHolder holderWithBlock:^{
+            self.hidden = hidden;
+        }]];
+    }else{
+        self.hidden = hidden;
+    }
+    
+}
+
+- (void) beginUpdateStyle
+{
+    if (self.finishUpdateStyleCallbacks == nil) {
+        self.finishUpdateStyleCallbacks = [NSMutableArray array];
+    }
+    [self.finishUpdateStyleCallbacks removeAllObjects];
+}
+
+- (void) endUpdateStyle
+{
+    for (FGVoidBlockHolder *holder in self.finishUpdateStyleCallbacks) {
+        [holder notify];
+    }
     [self layoutIfNeeded];
+}
+
+- (void)styleWithTransition:(CGFloat)duration
+{
+    if (duration > 0) {
+        [self respondsToSelector:@selector(beginUpdateStyle) withKey:nil usingBlock:^(UIView *self){
+            if (self.finishUpdateStyleCallbacks == nil) {
+                self.finishUpdateStyleCallbacks = [NSMutableArray array];
+            }
+            [self.finishUpdateStyleCallbacks removeAllObjects];
+            [UIView beginAnimations:[FGInternal memoryPositionAsReuseIdOfObject:self] context:nil];
+            [UIView setAnimationDuration:duration];
+        }];
+        [self respondsToSelector:@selector(endUpdateStyle) withKey:nil usingBlock:^(UIView * self){
+            [self layoutIfNeeded];
+            [UIView commitAnimations];
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                for (FGVoidBlockHolder *holder in self.finishUpdateStyleCallbacks) {
+                    [holder notify];
+                }
+            });
+        }];
+    }else{
+        [self removeBlockForSelector:@selector(beginUpdateStyle) withKey:nil];
+        [self removeBlockForSelector:@selector(endUpdateStyle) withKey:nil];
+    }
 }
 
 - (void)sizeStyleUseAutoLayout

@@ -37,6 +37,8 @@
 
 + (BOOL) tableRefreshControl: (BOOL) isRefreshing;
 
++ (BOOL) tableRefreshControl;
+
 + (void) endTable;
 @end
 

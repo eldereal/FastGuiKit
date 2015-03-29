@@ -18,5 +18,7 @@ typedef UIViewController *(^FGWeakViewControllerStorage)();
 
 + (NSString *) memoryPositionAsReuseIdOfObject: (id) obj;
 
++ (NSString *) staticReuseId: (__strong NSString **) pointer;
+
 @end
 

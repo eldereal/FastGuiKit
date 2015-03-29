@@ -23,6 +23,10 @@
 
 + (void) touchableBlockWithCallback: (FGVoidBlock) callback styleClass: (NSString *)styleClass;
 
++ (BOOL) touchableBlock;
+
++ (BOOL) touchableBlockWithStyleClass: (NSString *) styleClass;
+
 + (void) scrollView;
 
 + (void) scrollViewWithStyleClass: (NSString *)styleClass;
@@ -45,9 +49,6 @@
 
 //+ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass;
 
-+ (void) imageButtonWithName: (NSString *) imageName styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
-
-+ (void) imageButtonWithName: (NSString *) imageName onClick: (FGVoidBlock) onClick;
 
 + (NSString *) textField;
 

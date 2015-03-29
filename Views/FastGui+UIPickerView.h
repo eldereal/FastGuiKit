@@ -14,4 +14,8 @@
 
 + (NSInteger) pickerWithTextList: (NSArray *)list styleClass:(NSString *) styleClass;
 
++ (id) pickerWithObjectList: (NSArray *)list objectLabel: (NSString *(^)(id)) objectLabel;
+
++ (id) pickerWithObjectList: (NSArray *)list objectLabel: (NSString *(^)(id)) objectLabel styleClass:(NSString *) styleClass;
+
 @end

@@ -165,10 +165,12 @@ static void * TableFooterWithNextCustomViewMethodKey = &TableFooterWithNextCusto
     } resultBlock: nil];
 }
 
+static NSString * tableRefreshControlReuseId;
+
 + (BOOL)tableRefreshControl: (BOOL) isRefreshing
 {
     [FastGui customData:RefreshControlMethodKey data:nil];
-    NSNumber *res = [self customViewWithClass:nil reuseId:[FGInternal herePositionAsReuseId] initBlock:^UIView *(UIView *reuseView) {
+    NSNumber *res = [self customViewWithClass:nil reuseId:[FGInternal staticReuseId:&tableRefreshControlReuseId] initBlock:^UIView *(UIView *reuseView) {
         UIRefreshControl *refresh = (UIRefreshControl *) reuseView;
         if (refresh == nil) {
             refresh = [[UIRefreshControl alloc] init];
@@ -183,6 +185,30 @@ static void * TableFooterWithNextCustomViewMethodKey = &TableFooterWithNextCusto
             }else if(!isRefreshing && refresh.refreshing){
                 [refresh endRefreshing];
             }
+        }
+        return refresh;
+    } resultBlock:^id(UIView *view) {
+        UIRefreshControl *refresh = (UIRefreshControl *) view;
+        if (refresh.changingResult != nil) {
+            return refresh.changingResult;
+        }else{
+            return [NSNumber numberWithBool:refresh.refreshing];
+        }
+    }];
+    return [res boolValue];
+}
+
++ (BOOL)tableRefreshControl
+{
+    [FastGui customData:RefreshControlMethodKey data:nil];
+    NSNumber *res = [self customViewWithClass:nil reuseId:[FGInternal staticReuseId:&tableRefreshControlReuseId] initBlock:^UIView *(UIView *reuseView) {
+        UIRefreshControl *refresh = (UIRefreshControl *) reuseView;
+        if (refresh == nil) {
+            refresh = [[UIRefreshControl alloc] init];
+            [refresh bk_addEventHandler:^(id sender) {
+                UIRefreshControl *refresh = (UIRefreshControl *) sender;
+                [refresh reloadGuiChangingResult:[NSNumber numberWithBool:refresh.refreshing]];
+            } forControlEvents:UIControlEventValueChanged];
         }
         return refresh;
     } resultBlock:^id(UIView *view) {
