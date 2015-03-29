@@ -432,25 +432,33 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     [self layoutIfNeeded];
 }
 
+- (void)dispatchAfterUpdateStyle:(FGVoidBlock)block
+{
+    [self.finishUpdateStyleCallbacks addObject:[FGVoidBlockHolder holderWithBlock:block]];
+}
+
 - (void)styleWithTransition:(CGFloat)duration
 {
     if (duration > 0) {
         [self respondsToSelector:@selector(beginUpdateStyle) withKey:nil usingBlock:^(UIView *self){
-            if (self.finishUpdateStyleCallbacks == nil) {
-                self.finishUpdateStyleCallbacks = [NSMutableArray array];
+            void(*superblock)(id target, SEL selector) = (void(*)(id target, SEL selector))[self supermethodOfCurrentBlock];
+            if (superblock) {
+                superblock(self, @selector(beginUpdateStyle));
             }
-            [self.finishUpdateStyleCallbacks removeAllObjects];
+
             [UIView beginAnimations:[FGInternal memoryPositionAsReuseIdOfObject:self] context:nil];
             [UIView setAnimationDuration:duration];
         }];
         [self respondsToSelector:@selector(endUpdateStyle) withKey:nil usingBlock:^(UIView * self){
             [self layoutIfNeeded];
             [UIView commitAnimations];
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-                for (FGVoidBlockHolder *holder in self.finishUpdateStyleCallbacks) {
-                    [holder notify];
-                }
-            });
+            
+            void(*superblock)(id target, SEL selector) = (void(*)(id target, SEL selector))[self supermethodOfCurrentBlock];
+            if (superblock) {
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(duration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                    superblock(self, @selector(endUpdateStyle));
+                });
+            }
         }];
     }else{
         [self removeBlockForSelector:@selector(beginUpdateStyle) withKey:nil];
