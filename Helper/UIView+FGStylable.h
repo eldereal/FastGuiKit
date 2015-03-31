@@ -22,6 +22,12 @@
 
 - (NSLayoutConstraint *) updateConstraint: (NSLayoutConstraint *)constraint view1: (id)view1 attribute:(NSLayoutAttribute)attr1 relatedBy:(NSLayoutRelation)relation toItem:(id)view2 attribute:(NSLayoutAttribute)attr2 multiplier:(CGFloat)multiplier constant:(CGFloat)c;
 
+- (void) percentageSizeStyleRelativeTo: (UIView*) relativeView;
+
+- (void) percentageSizeStyleRelativeToSuperview;
+
+- (void) percentageSizeStyleDisabledWithTip: (NSString *) tip;
+
 - (void) sizeStyleUseAutoLayout;
 
 - (void) sizeStyleSetFrame;

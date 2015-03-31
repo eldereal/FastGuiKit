@@ -38,4 +38,8 @@
 
 + (void) carouselBounceDistance: (CGFloat) bounceDistance;
 
++ (void) carouselViewpointOffset: (CGSize) viewpointOffset;
+
++ (void) carouselContentOffset: (CGSize) contentOffset;
+
 @end

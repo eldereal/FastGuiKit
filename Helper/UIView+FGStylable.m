@@ -485,16 +485,24 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 - (void)sizeStyleSetFrame
 {
     [self respondsToSelector:@selector(styleWithWidth:) withKey:nil usingBlock:^(UIView *selfView, CGFloat width){
-        selfView.frame = CGRectMake(selfView.frame.origin.x, selfView.frame.origin.y, width, selfView.frame.size.height);
+        if (!isnan(width)) {
+            selfView.frame = CGRectMake(selfView.frame.origin.x, selfView.frame.origin.y, width, selfView.frame.size.height);
+        }
     }];
     [self respondsToSelector:@selector(styleWithHeight:) withKey:nil usingBlock:^(UIView *selfView, CGFloat height){
-        selfView.frame = CGRectMake(selfView.frame.origin.x, selfView.frame.origin.y, selfView.frame.size.width, height);
+        if (!isnan(height)) {
+            selfView.frame = CGRectMake(selfView.frame.origin.x, selfView.frame.origin.y, selfView.frame.size.width, height);
+        }
     }];
-    [self respondsToSelector:@selector(styleWithWidthPercentage:) withKey:nil usingBlock:^(UIView *selfView, CGFloat left){
-        printf("'widthPercentage' style of this view is disabled because its container doesn't support autolayout");
+    [self respondsToSelector:@selector(styleWithWidthPercentage:) withKey:nil usingBlock:^(UIView *self, CGFloat widthPercentage){
+        if (self.superview != nil && !isnan(widthPercentage)) {
+            self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.superview.frame.size.width * widthPercentage, self.frame.size.height);
+        }
     }];
-    [self respondsToSelector:@selector(styleWithHeightPercentage:) withKey:nil usingBlock:^(UIView *selfView, CGFloat right){
-        printf("'heightPercentage' style of this view is disabled because its container doesn't support autolayout");
+    [self respondsToSelector:@selector(styleWithHeightPercentage:) withKey:nil usingBlock:^(UIView *self, CGFloat heightPercentage){
+        if (self.superview != nil && !isnan(heightPercentage)) {
+            self.frame = CGRectMake(self.frame.origin.x, self.frame.origin.y, self.frame.size.width, self.superview.frame.size.height * heightPercentage);
+        }
     }];
 }
 
@@ -508,10 +516,10 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         printf("'height' style of this view is disabled because %s", [str UTF8String]);
     }];
     [self respondsToSelector:@selector(styleWithWidthPercentage:) withKey:nil usingBlock:^(UIView *selfView, CGFloat left){
-        printf("'widthPercentage' style of this view is disabled because %s", [str UTF8String]);
+        printf("'widthPercentage' style of this view is disabled because %s", [tip UTF8String]);
     }];
     [self respondsToSelector:@selector(styleWithHeightPercentage:) withKey:nil usingBlock:^(UIView *selfView, CGFloat right){
-        printf("'heightPercentage' style of this view is disabled because %s", [str UTF8String]);
+        printf("'heightPercentage' style of this view is disabled because %s", [tip UTF8String]);
     }];
 }
 

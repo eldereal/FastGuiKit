@@ -235,6 +235,24 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
     }];
 }
 
++ (void)carouselContentOffset:(CGSize)contentOffset
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[FGCarousel class]]) {
+            ((FGCarousel *) view).contentOffset = contentOffset;
+        }
+    }];
+}
+
++ (void)carouselViewpointOffset:(CGSize)viewpointOffset
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[FGCarousel class]]) {
+            ((FGCarousel *) view).viewpointOffset = viewpointOffset;
+        }
+    }];
+}
+
 @end
 
 
