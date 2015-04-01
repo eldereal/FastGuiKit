@@ -416,6 +416,37 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     
 }
 
+- (void)styleWithBorder:(UIColor *)color width:(CGFloat)borderWidth
+{
+    self.layer.borderColor = color.CGColor;
+    self.layer.borderWidth = borderWidth;
+}
+
+- (void)styleWithBorderColor:(UIColor *) borderColor
+{
+    self.layer.borderColor = borderColor.CGColor;
+}
+
+- (void)styleWithBorderWidth:(CGFloat)borderWidth
+{
+    self.layer.borderWidth = borderWidth;
+}
+
+- (void)styleWithBorderRadius:(CGFloat)borderRadius
+{
+    self.layer.cornerRadius = borderRadius;
+}
+
+- (void)styleWithColor:(UIColor *)color
+{
+    self.tintColor = color;
+}
+
+-(void)styleWithBackgroundColor:(UIColor *)backgroundColor
+{
+    self.backgroundColor = backgroundColor;
+}
+
 - (void) beginUpdateStyle
 {
     if (self.finishUpdateStyleCallbacks == nil) {

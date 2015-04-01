@@ -53,6 +53,9 @@ static NSArray *_styleClass;
     _styleClass = [styleClass copy];
 }
 
+static NSString *_styleClassRaw;
+
+
 + (void) pushContext:(id<FGContext>)context
 {
 //    NSArray *stack = [NSThread callStackSymbols];
@@ -90,6 +93,7 @@ static NSArray *_styleClass;
 {
     return [self.context customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:^(UIView *view) {
         [FGStyle updateStyleOfView:view withBlock:^(UIView *view) {
+            _styleClassRaw = styleClass;
             self.styleClass = [styleClass componentsSeparatedByString:@" "];
             self.styleTarget = view;
             [self.context styleSheet];
@@ -106,16 +110,16 @@ static NSArray *_styleClass;
     }
 }
 
-+ (void)styleOfType:(Class)type block:(FGStyleBlock)block
++ (void)styleOfType:(Class)type block:(void(^)(UIView *view, NSString *styleClass))block
 {
     if ([self.styleTarget isKindOfClass:type]) {
-        block(self.styleTarget);
+        block(self.styleTarget, _styleClassRaw);
     }
 }
 
-+ (void) styleOfAll:(FGStyleBlock)block
++ (void) styleOfAll:(void(^)(UIView *view, NSString *styleClass))block
 {
-    block(self.styleTarget);
+    block(self.styleTarget, _styleClassRaw);
 }
 
 + (id) customData:(void*) key data:(NSDictionary *)data

@@ -25,9 +25,9 @@
 
 + (void) styleOfClass: (NSString *) styleClass block: (FGStyleBlock) block;
 
-+ (void) styleOfType: (Class) type block: (FGStyleBlock) block;
++ (void) styleOfType: (Class) type block: (void(^)(UIView *view, NSString *styleClass)) block;
 
-+ (void) styleOfAll: (FGStyleBlock)block;
++ (void) styleOfAll: (void(^)(UIView *view, NSString *styleClass)) block;
 
 + (void) reloadGui;
 

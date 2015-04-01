@@ -57,6 +57,14 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 
 - (void) styleWithBackgroundColor: (UIColor *) backgroundColor;
 
+- (void) styleWithBorder: (UIColor *) color width: (CGFloat) borderWidth;
+
+- (void) styleWithBorderColor: (UIColor *) borderColor;
+
+- (void) styleWithBorderWidth: (CGFloat) borderWidth;
+
+- (void) styleWithBorderRadius: (CGFloat) borderRadius;
+
 - (void) styleWithCustomKey: (NSString *) key value: (id) value;
 
 - (void) styleWithOpacity: (CGFloat) opacity;
@@ -124,6 +132,10 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 + (void) backgroundColor: (UIColor *) backgroundColor;
 
 + (void) border: (UIColor *) borderColor width: (CGFloat) borderWidth;
+
++ (void) borderColor: (UIColor *) borderColor;
+
++ (void) borderWidth: (CGFloat) borderWidth;
 
 + (void) borderRadius: (CGFloat) borderRadius;
 

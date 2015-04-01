@@ -14,6 +14,10 @@
 
 static UIView *_view;
 
+#define tryPerformSelectorWithObject(selectorName, arg1) \
+    if ([_view respondsToSelector: @selector(selectorName :)]) {\
+        [_view selectorName : arg1];\
+    }
 
 + (void) updateStyleOfView: (UIView *) view withBlock: (FGStyleBlock) block
 {
@@ -40,34 +44,22 @@ static UIView *_view;
 
 + (void)top:(CGFloat)top
 {
-    if([_view respondsToSelector:@selector(styleWithTop:)])
-    {
-        [_view styleWithTop: top];
-    }
+    tryPerformSelectorWithObject(styleWithTop, top);
 }
 
 + (void)right:(CGFloat)right
 {
-    if([_view respondsToSelector:@selector(styleWithRight:)])
-    {
-        [_view styleWithRight: right];
-    }
+    tryPerformSelectorWithObject(styleWithRight, right);
 }
 
 + (void) bottom:(CGFloat)bottom
 {
-    if([_view respondsToSelector:@selector(styleWithBottom:)])
-    {
-        [_view styleWithBottom: bottom];
-    }
+    tryPerformSelectorWithObject(styleWithBottom, bottom);
 }
 
 + (void) left:(CGFloat)left
 {
-    if([_view respondsToSelector:@selector(styleWithLeft:)])
-    {
-        [_view styleWithLeft: left];
-    }
+    tryPerformSelectorWithObject(styleWithLeft, left);
 }
 
 + (void)top:(CGFloat)top right:(CGFloat)right bottom:(CGFloat)bottom left:(CGFloat)left
@@ -88,73 +80,47 @@ static UIView *_view;
 
 + (void)height:(CGFloat)height
 {
-    if([_view respondsToSelector:@selector(styleWithHeight:)])
-    {
-        [_view styleWithHeight: height];
-    }
+    tryPerformSelectorWithObject(styleWithHeight, height);
 }
 
 + (void)width:(CGFloat)width
 {
-    if([_view respondsToSelector:@selector(styleWithWidth:)])
-    {
-        [_view styleWithWidth: width];
-    }
+    tryPerformSelectorWithObject(styleWithWidth, width);
 }
 
 + (void)topPercentage:(CGFloat)topPercentage
 {
-    if([_view respondsToSelector:@selector(styleWithTopPercentage:)])
-    {
-        [_view styleWithTopPercentage: topPercentage];
-    }
+    tryPerformSelectorWithObject(styleWithTopPercentage, topPercentage);
 }
 
 + (void)rightPercentage:(CGFloat)rightPercentage
 {
-    if([_view respondsToSelector:@selector(styleWithRightPercentage:)])
-    {
-        [_view styleWithRightPercentage: rightPercentage];
-    }
+    tryPerformSelectorWithObject(styleWithRightPercentage, rightPercentage);
 }
 
 + (void) bottomPercentage:(CGFloat)bottomPercentage
 {
-    if([_view respondsToSelector:@selector(styleWithBottomPercentage:)])
-    {
-        [_view styleWithBottomPercentage: bottomPercentage];
-    }
+    tryPerformSelectorWithObject(styleWithBottomPercentage, bottomPercentage);
 }
 
 + (void) leftPercentage:(CGFloat)leftPercentage
 {
-    if([_view respondsToSelector:@selector(styleWithLeftPercentage:)])
-    {
-        [_view styleWithLeftPercentage: leftPercentage];
-    }
+    tryPerformSelectorWithObject(styleWithLeftPercentage, leftPercentage);
 }
 
 + (void)heightPercentage:(CGFloat)heightPercentage
 {
-    if([_view respondsToSelector:@selector(styleWithHeightPercentage:)])
-    {
-        [_view styleWithHeightPercentage: heightPercentage];
-    }
+    tryPerformSelectorWithObject(styleWithHeightPercentage, heightPercentage);
 }
 
 + (void)widthPercentage:(CGFloat)widthPercentage
 {
-    if([_view respondsToSelector:@selector(styleWithWidthPercentage:)])
-    {
-        [_view styleWithWidthPercentage: widthPercentage];
-    }
+    tryPerformSelectorWithObject(styleWithWidthPercentage, widthPercentage);
 }
 
 + (void)textAlign:(NSTextAlignment)textAlign
 {
-    if ([_view respondsToSelector:@selector(styleWithTextAlign:)]) {
-        [_view styleWithTextAlign:textAlign];
-    }
+    tryPerformSelectorWithObject(styleWithTextAlign, textAlign);
 }
 
 + (void)fontSize:(CGFloat)fontSize
@@ -172,50 +138,39 @@ static UIView *_view;
 
 + (void)fontWeight:(FGStyleFontWeight)fontWeight
 {
-    if ([_view respondsToSelector:@selector(styleWithFontWeight:)]) {
-        [_view styleWithFontWeight:fontWeight];
-    }else if ([_view respondsToSelector:@selector(font)] && [_view respondsToSelector: @selector(setFont:)]) {
-        id ret = [_view performSelector:@selector(font)];
-        if ([ret isKindOfClass:[UIFont class]]) {
-            UIFont *oldFont = (UIFont *)ret;
-            UIFont *newFont;
-            if (fontWeight == FGStyleFontWeightNormal) {
-                newFont = [UIFont fontWithDescriptor:[oldFont.fontDescriptor fontDescriptorWithSymbolicTraits:0] size:0];
-            }else{
-                newFont = [UIFont fontWithDescriptor:[oldFont.fontDescriptor fontDescriptorWithSymbolicTraits:UIFontDescriptorTraitBold] size:0];
-            }
-            [_view performSelector:@selector(setFont:) withObject:newFont];
-        }
-    }
+    tryPerformSelectorWithObject(styleWithFontWeight, fontWeight);
 }
 
 + (void)color:(UIColor *)color
 {
-    if ([_view respondsToSelector: @selector(styleWithColor:)]) {
-        [_view performSelector:@selector(styleWithColor:) withObject:color];
-    }else{
-        _view.tintColor = color;
-    }
+    tryPerformSelectorWithObject(styleWithColor, color);
 }
 
 + (void)backgroundColor:(UIColor *)backgroundColor
 {
-    if ([_view respondsToSelector: @selector(styleWithBackgroundColor:)]) {
-        [_view performSelector:@selector(styleWithBackgroundColor:) withObject:backgroundColor];
-    }else{
-        _view.backgroundColor = backgroundColor;
-    }
+    tryPerformSelectorWithObject(styleWithBackgroundColor, backgroundColor);
 }
 
 + (void)border:(UIColor *)borderColor width:(CGFloat)borderWidth
 {
-    _view.layer.borderWidth = borderWidth;
-    _view.layer.borderColor = borderColor.CGColor;
+    if ([_view respondsToSelector:@selector(styleWithBorder:width:)]) {
+        [_view styleWithBorder:borderColor width:borderWidth];
+    }
 }
 
-+ (void) borderRadius:(CGFloat)borderRadius
++ (void)borderColor:(UIColor *)borderColor
 {
-    _view.layer.cornerRadius = borderRadius;
+    tryPerformSelectorWithObject(styleWithBorderColor, borderColor);
+}
+
++ (void)borderWidth:(CGFloat)borderWidth
+{
+    tryPerformSelectorWithObject(styleWithBorderWidth, borderWidth);
+}
+
++ (void)borderRadius:(CGFloat)borderRadius
+{
+    tryPerformSelectorWithObject(styleWithBorderRadius, borderRadius);
 }
 
 + (void)customStyleWithKey:(NSString *)key value:(id)value
@@ -258,37 +213,27 @@ static UIView *_view;
 
 + (void)horizontalCenter:(CGFloat)horizontalCenter
 {
-    if ([_view respondsToSelector:@selector(styleWithHorizontalCenter:)]) {
-        [_view styleWithHorizontalCenter:horizontalCenter];
-    }
+    tryPerformSelectorWithObject(styleWithHorizontalCenter, horizontalCenter);
 }
 
 + (void)verticalCenter:(CGFloat)verticalCenter
 {
-    if ([_view respondsToSelector:@selector(styleWithVerticalCenter:)]) {
-        [_view styleWithVerticalCenter:verticalCenter];
-    }
+    tryPerformSelectorWithObject(styleWithVerticalCenter, verticalCenter);
 }
 
 + (void)hidden:(BOOL)hidden
 {
-    if ([_view respondsToSelector:@selector(styleWithHidden:)]) {
-        [_view styleWithHidden:hidden];
-    }
+    tryPerformSelectorWithObject(styleWithHidden, hidden);
 }
 
 + (void)opacity:(CGFloat)opacity
 {
-    if ([_view respondsToSelector:@selector(styleWithOpacity:)]) {
-        [_view styleWithOpacity:opacity];
-    }
+    tryPerformSelectorWithObject(styleWithOpacity, opacity);
 }
 
 + (void)transition:(CGFloat)duration
 {
-    if ([_view respondsToSelector:@selector(styleWithTransition:)]) {
-        [_view styleWithTransition:duration];
-    }
+    tryPerformSelectorWithObject(styleWithTransition, duration);
 }
 
 @end
