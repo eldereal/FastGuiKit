@@ -16,6 +16,8 @@
 
 + (void) popContext;
 
++ (void) setRootContext: (id<FGContext>) context;
+
 /**
  * display a custom view with context's layout.
  */

@@ -359,6 +359,8 @@ static NSString * tableRefreshControlReuseId;
             }else{
                 if (cell == nil) {
                     cell = [[UITableViewHeaderFooterView alloc] init];
+                    cell.backgroundView = [[UIView alloc] init];
+                    cell.backgroundView.backgroundColor = [UIColor clearColor];
                 }
                 if (newView != oldView) {
                     [oldView removeFromSuperview];

@@ -53,6 +53,8 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 
 - (void) styleWithFontWeight: (FGStyleFontWeight) fontWeight;
 
+- (void) styleWithLineHeight: (CGFloat)lineHeight;
+
 - (void) styleWithColor: (UIColor *) color;
 
 - (void) styleWithBackgroundColor: (UIColor *) backgroundColor;
@@ -126,6 +128,8 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 + (void) fontSize: (CGFloat) fontSize;
 
 + (void) fontWeight: (FGStyleFontWeight) fontWeight;
+
++ (void) lineHeight: (CGFloat)lineHeight;
 
 + (void) color: (UIColor *) color;
 

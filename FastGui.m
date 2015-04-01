@@ -79,6 +79,11 @@ static NSString *_styleClassRaw;
     }
 }
 
++ (void)setRootContext:(id<FGContext>)context
+{
+    self.context = context;
+}
+
 + (void) customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
 {
     [self.context customViewControllerWithReuseId:reuseId initBlock:initBlock];

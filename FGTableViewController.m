@@ -84,14 +84,8 @@
 {
     [super viewDidAppear:animated];
     self.readyForPushViewControllers = true;
-    [FastGui pushContext: self];
+    [FastGui setRootContext: self];
     [FastGui reloadGui];
-}
-
-- (void)viewDidDisappear:(BOOL)animated
-{
-    [super viewDidDisappear: YES];
-    [FastGui popContext];
 }
 
 - (void) onGui

@@ -125,20 +125,17 @@ static UIView *_view;
 
 + (void)fontSize:(CGFloat)fontSize
 {
-    if ([_view respondsToSelector: @selector(styleWithFontSize:)]) {
-        [_view performSelector:@selector(styleWithFontSize:) withObject:[NSNumber numberWithFloat: fontSize]];
-    }else if ([_view respondsToSelector:@selector(font)] && [_view respondsToSelector: @selector(setFont:)]) {
-        id ret = [_view performSelector:@selector(font)];
-        if ([ret isKindOfClass:[UIFont class]]) {
-            UIFont *newFont = [(UIFont *)ret fontWithSize:fontSize];
-            [_view performSelector:@selector(setFont:) withObject:newFont];
-        }
-    }
+    tryPerformSelectorWithObject(styleWithFontSize, [NSNumber numberWithFloat: fontSize]);
 }
 
 + (void)fontWeight:(FGStyleFontWeight)fontWeight
 {
     tryPerformSelectorWithObject(styleWithFontWeight, fontWeight);
+}
+
++ (void)lineHeight:(CGFloat)lineHeight
+{
+    tryPerformSelectorWithObject(styleWithLineHeight, lineHeight);
 }
 
 + (void)color:(UIColor *)color

@@ -178,6 +178,7 @@
         UITextView *label = (UITextView *) reuseView;
         if(label == nil){
             label = [[UITextView alloc] init];
+            label.backgroundColor = [UIColor clearColor];
             label.scrollEnabled = NO;
             label.editable = NO;
         }

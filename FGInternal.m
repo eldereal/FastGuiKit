@@ -18,6 +18,9 @@
 {
     //return [NSThread callStackSymbols][2];
     NSArray *arr = [NSThread callStackReturnAddresses];
+    if (arr.count < 3) {
+        return @"_caller@unavailable";
+    }
     NSNumber *val = arr[2];
     return [NSString stringWithFormat:@"_caller@%lx", val.longValue];
 }

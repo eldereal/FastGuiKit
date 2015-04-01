@@ -227,6 +227,8 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
         UIView *view = (UIView *)[self.groupView.pool updateItem:reuseId initBlock:initBlock outputIsNewView: &isNew];
         if (isNew) {
             [self.groupView addSubview:view];            
+        }else{
+            [self.groupView bringSubviewToFront:view];
         }
         if (self.mode == FGViewGroupLayoutModeVertical) {
             [self setAndOverrideVerticalLayouts: view];
