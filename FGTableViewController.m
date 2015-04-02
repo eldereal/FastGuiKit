@@ -76,6 +76,7 @@
 
 - (void)viewDidLoad
 {
+    [super viewDidLoad];
     self.readyForPushViewControllers = false;
     [FastGui reloadGuiSyncWithContext:self];
 }

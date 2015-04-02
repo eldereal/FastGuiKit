@@ -208,6 +208,16 @@ static UIView *_view;
     [_view setContentCompressionResistancePriority:verticalPriority forAxis:UILayoutConstraintAxisVertical];
 }
 
++ (void) contentMode: (UIViewContentMode) contentMode
+{
+    _view.contentMode = contentMode;
+}
+
++ (void) overflow: (FGStyleOverflow) overflowMode
+{
+    _view.clipsToBounds = overflowMode == FGStyleOverflowHidden;
+}
+
 + (void)horizontalCenter:(CGFloat)horizontalCenter
 {
     tryPerformSelectorWithObject(styleWithHorizontalCenter, horizontalCenter);

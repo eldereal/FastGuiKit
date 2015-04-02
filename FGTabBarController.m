@@ -62,11 +62,13 @@
 
 - (void)viewDidLoad
 {
+    [super viewDidLoad];
     [self reloadGui];
 }
 
 - (void)viewDidAppear:(BOOL)animated
 {
+    [super viewDidAppear:animated];
     [self reloadGui];
 }
 

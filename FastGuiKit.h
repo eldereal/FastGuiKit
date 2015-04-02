@@ -20,7 +20,7 @@
 #include "FGTableViewController.h"
 #include "FGTouchableView.h"
 #include "FGPushStyleSheetContext.h"
-#include "FGVerticalScrollView.h"
+#include "FGScrollView.h"
 #include "FGTextFieldInputView.h"
 
 #include "FastGui+UIPickerView.h"

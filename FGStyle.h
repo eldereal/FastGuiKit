@@ -15,6 +15,12 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
     FGStyleFontWeightBold
 };
 
+typedef NS_ENUM(NSUInteger, FGStyleOverflow)
+{
+    FGStyleOverflowVisible = 0,
+    FGStyleOverflowHidden
+};
+
 @protocol FGStylable <NSObject>
 
 @optional
@@ -154,6 +160,10 @@ typedef NS_ENUM(NSUInteger, FGStyleFontWeight)
 + (void) contentCompressionResistancePriority:(UILayoutPriority) priority;
 
 + (void) contentCompressionResistanceHorizontalPriority:(UILayoutPriority) horizontalPriority verticalPriority: (UILayoutPriority) verticalPriority;
+
++ (void) contentMode: (UIViewContentMode) contentMode;
+
++ (void) overflow: (FGStyleOverflow) overflowMode;
 
 + (void) hidden: (BOOL) hidden;
 

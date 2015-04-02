@@ -50,4 +50,9 @@
     }
 }
 
+- (void)styleWithTextAlign:(NSTextAlignment)textAlign
+{
+    self.textAlignment = textAlign;
+}
+
 @end

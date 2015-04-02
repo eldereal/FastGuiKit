@@ -6,14 +6,14 @@
 //  Copyright (c) 2015年 eldereal. All rights reserved.
 //
 
-#import "FGVerticalScrollView.h"
+#import "FGScrollView.h"
 #import "FGViewGroup.h"
 #import "FGStyle.h"
 #import "FGInternal.h"
 #import "UIView+FGStylable.h"
 #import "UIView+applyStyleAfterAddedToSuperview.h"
 
-@implementation FastGui(FGVerticalScrollView)
+@implementation FastGui(FGScrollView)
 
 + (void) beginVerticalScrollView
 {
@@ -66,6 +66,25 @@
 {
     [self endGroup];
     [self endGroup];
+}
+
+@end
+
+@implementation FGStyle(FGScrollView)
+
+
++ (void) scrollViewInset:(UIEdgeInsets)inset
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[UIScrollView class]]) {
+            ((UIScrollView *) view).contentInset = inset;
+        }
+    }];
+}
+
++ (void) scrollViewInsetWithTop:(CGFloat) top right: (CGFloat) right bottom: (CGFloat) bottom left:(CGFloat)left
+{
+    [self scrollViewInset:UIEdgeInsetsMake(top, left, bottom, right)];
 }
 
 @end

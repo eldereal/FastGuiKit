@@ -15,6 +15,7 @@
 #import "FGStyle.h"
 #import "FGReuseItemPool.h"
 #import "FGInternal.h"
+#import "FGNullViewContext.h"
 #import "UIView+voidBlockHolder.h"
 #import "UIView+applyStyleAfterAddedToSuperview.h"
 #import "UIView+FGStylable.h"
@@ -31,15 +32,9 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
     FGTableViewContextModeFooter,
 };
 
-@interface FGTableViewContext : NSObject<FGContext, UITableViewDataSource, UITableViewDelegate>
+@interface FGTableViewContext : FGNullViewContext
 
-@property (nonatomic, strong) FGReuseItemPool *pool;
-
-@property (nonatomic, weak) UITableView *tableView;
-
-@property (nonatomic, strong) NSMutableArray *data;
-
-@property (nonatomic, strong) UIRefreshControl *refreshControl;
+@property (nonatomic, strong) UITableView *tableView;
 
 @property (nonatomic, assign) FGTableViewContextMode mode;
 
@@ -49,9 +44,19 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 
 @end
 
+@interface FGTableData : NSObject<UITableViewDataSource, UITableViewDelegate>
+
+@property (nonatomic, strong) FGReuseItemPool *pool;
+
+@property (nonatomic, strong) NSMutableArray *data;
+
+@property (nonatomic, strong) UIRefreshControl *refreshControl;
+
+@end
+
 @interface UITableView(FGTable)
 
-@property (nonatomic, strong) FGTableViewContext *context;
+@property (nonatomic, strong) FGTableData *fg_tableData;
 
 @end
 
@@ -270,7 +275,7 @@ static NSString * tableRefreshControlReuseId;
 
 - (void)beginTable
 {
-    [self.pool prepareUpdateItems];
+    [self.tableView.fg_tableData.pool prepareUpdateItems];
 }
 
 - (void) overrideSizeStyle: (id<FGTableItem>) cell
@@ -299,7 +304,7 @@ static NSString * tableRefreshControlReuseId;
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
     if (self.mode == FGTableViewContextModeCell) {
-        UITableViewCell *cell = (UITableViewCell *)[self.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
+        UITableViewCell *cell = (UITableViewCell *)[self.tableView.fg_tableData.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
             UITableViewCell *cell = (UITableViewCell *) reuseItem;
             UIView *oldView = cell.innerView;
             UIView *newView = initBlock(oldView);
@@ -350,7 +355,7 @@ static NSString * tableRefreshControlReuseId;
             return resultBlock(cell.innerView);
         }
     }else if (self.mode == FGTableViewContextModeSectionHeader || self.mode == FGTableViewContextModeSectionFooter) {
-        UITableViewHeaderFooterView *cell = (UITableViewHeaderFooterView *)[self.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
+        UITableViewHeaderFooterView *cell = (UITableViewHeaderFooterView *)[self.tableView.fg_tableData.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
             UITableViewHeaderFooterView *cell = (UITableViewHeaderFooterView *) reuseItem;
             UIView *oldView = cell.innerView;
             UIView *newView = initBlock(oldView);
@@ -392,7 +397,7 @@ static NSString * tableRefreshControlReuseId;
     }
     else if(self.mode == FGTableViewContextModeRefreshControl)
     {
-        UIRefreshControl *oldRc = self.refreshControl;
+        UIRefreshControl *oldRc = self.tableView.fg_tableData.refreshControl;
         if (![oldRc.reuseId isEqualToString:reuseId]) {
             [oldRc removeFromSuperview];
             oldRc = nil;
@@ -402,7 +407,7 @@ static NSString * tableRefreshControlReuseId;
             [oldRc removeFromSuperview];
             [self.tableView addSubview:rc];
             rc.reuseId = reuseId;
-            self.refreshControl = rc;
+            self.tableView.fg_tableData.refreshControl = rc;
         }
         applyStyleBlock(rc);
         self.mode = FGTableViewContextModeCell;
@@ -489,19 +494,17 @@ static NSString * tableRefreshControlReuseId;
 - (void) endTable
 {
     __block BOOL needReloadTable = NO;
-    [self.pool finishUpdateItems:^(UIView *view){
+    [self.tableView.fg_tableData.pool finishUpdateItems:^(UIView *view){
         needReloadTable = YES;
     } needRemove:^(UIView*view){
         needReloadTable = YES;
     }];
     if (needReloadTable) {
-        if (self.data == nil) {
-            self.data = [NSMutableArray array];
-        }else{
-            [self.data removeAllObjects];
-        }
+        NSMutableArray *data = self.tableView.fg_tableData.data;
+        [data removeAllObjects];
+        
         NSMutableArray *currentSection;
-        for (UIView *view in self.pool.items) {
+        for (UIView *view in self.tableView.fg_tableData.pool.items) {
             if ([view isKindOfClass:[UITableViewCell class]]) {
                 if (currentSection == nil) {
                     currentSection = [NSMutableArray arrayWithObjects:[NSNull null], [NSNull null], nil];
@@ -511,7 +514,7 @@ static NSString * tableRefreshControlReuseId;
                 UITableViewHeaderFooterView *headerOrFooter = (UITableViewHeaderFooterView *)view;
                 if (headerOrFooter.isHeader) {
                     if (currentSection != nil) {
-                        [self.data addObject: currentSection];
+                        [data addObject: currentSection];
                     }
                     currentSection = [NSMutableArray arrayWithObjects:headerOrFooter, [NSNull null], nil];
                 }else{
@@ -523,11 +526,65 @@ static NSString * tableRefreshControlReuseId;
             }
         }
         if (currentSection != nil) {
-            [self.data addObject: currentSection];
+            [data addObject: currentSection];
         }
         [self.tableView reloadData];
     }
     [FastGui popContext];
+}
+
+@end
+
+static void * ReuseIdPropertyKey = &ReuseIdPropertyKey;
+static void * InnerViewPropertyKey = &InnerViewPropertyKey;
+static void * CellHeightPropertyKey = &CellHeightPropertyKey;
+
+@implementation UITableViewCell (FGTable)
+
+
+- (void)setReuseId:(NSString *)reuseId
+{
+    objc_setAssociatedObject(self, ReuseIdPropertyKey, reuseId, OBJC_ASSOCIATION_COPY_NONATOMIC);
+}
+
+- (NSString *)reuseId
+{
+    return objc_getAssociatedObject(self, ReuseIdPropertyKey);
+}
+
+- (void)setInnerView:(UIView *)innerView
+{
+    objc_setAssociatedObject(self, InnerViewPropertyKey, innerView, OBJC_ASSOCIATION_ASSIGN);
+}
+
+- (UIView *)innerView
+{
+    return objc_getAssociatedObject(self, InnerViewPropertyKey);
+}
+
+- (void)setCellHeight:(CGFloat)cellHeight
+{
+    objc_setAssociatedObject(self, CellHeightPropertyKey,[NSNumber numberWithFloat: cellHeight], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (CGFloat)cellHeight
+{
+    NSNumber *cellHeight = objc_getAssociatedObject(self, CellHeightPropertyKey);
+    return cellHeight == nil ? 44 : [cellHeight floatValue];
+}
+
+@end
+
+@implementation FGTableData
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        self.pool = [[FGReuseItemPool alloc] init];
+        self.data = [NSMutableArray array];
+    }
+    return self;
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -587,60 +644,21 @@ static NSString * tableRefreshControlReuseId;
     return footer.cellHeight;
 }
 
-@end
-
-static void * ReuseIdPropertyKey = &ReuseIdPropertyKey;
-static void * InnerViewPropertyKey = &InnerViewPropertyKey;
-static void * CellHeightPropertyKey = &CellHeightPropertyKey;
-
-@implementation UITableViewCell (FGTable)
-
-
-- (void)setReuseId:(NSString *)reuseId
-{
-    objc_setAssociatedObject(self, ReuseIdPropertyKey, reuseId, OBJC_ASSOCIATION_COPY_NONATOMIC);
-}
-
-- (NSString *)reuseId
-{
-    return objc_getAssociatedObject(self, ReuseIdPropertyKey);
-}
-
-- (void)setInnerView:(UIView *)innerView
-{
-    objc_setAssociatedObject(self, InnerViewPropertyKey, innerView, OBJC_ASSOCIATION_ASSIGN);
-}
-
-- (UIView *)innerView
-{
-    return objc_getAssociatedObject(self, InnerViewPropertyKey);
-}
-
-- (void)setCellHeight:(CGFloat)cellHeight
-{
-    objc_setAssociatedObject(self, CellHeightPropertyKey,[NSNumber numberWithFloat: cellHeight], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
-}
-
-- (CGFloat)cellHeight
-{
-    NSNumber *cellHeight = objc_getAssociatedObject(self, CellHeightPropertyKey);
-    return cellHeight == nil ? 44 : [cellHeight floatValue];
-}
 
 @end
 
 @implementation UITableView(FGTable)
 
-static void * ContextPropertyKey = &ContextPropertyKey;
+static void * FGTableDataPropertyKey = &FGTableDataPropertyKey;
 
-- (FGTableViewContext *)context
+- (FGTableData *)fg_tableData
 {
-    return objc_getAssociatedObject(self, ContextPropertyKey);
+    return objc_getAssociatedObject(self, FGTableDataPropertyKey);
 }
 
-- (void)setContext:(FGTableViewContext *)context
+- (void)setFg_tableData:(FGTableData *)fg_tableData
 {
-    objc_setAssociatedObject(self, ContextPropertyKey, context, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    objc_setAssociatedObject(self, FGTableDataPropertyKey, fg_tableData, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
 }
 
 @end
@@ -736,17 +754,17 @@ static void * IsHeaderPropertyKey = &IsHeaderPropertyKey;
         printf("You must generate a UITableView after call beginTableWithNextCustomView, but a view with (%s) is given. This view will be ignored\n", [NSStringFromClass([view class]) UTF8String]);
     }
     UITableView *table = (UITableView *) view;
-    if (table.context == nil) {
-        table.context = [[FGTableViewContext alloc] init];
-        table.context.pool = [[FGReuseItemPool alloc] init];
-        table.context.tableView = table;
+    if (table.fg_tableData == nil) {
+        table.fg_tableData = [[FGTableData alloc] init];
+        table.delegate = table.fg_tableData;
+        table.dataSource = table.fg_tableData;
     }
-    table.delegate = table.context;
-    table.dataSource = table.context;
+    FGTableViewContext *ctx = [[FGTableViewContext alloc] init];
+    ctx.tableView = table;
     
     [FastGui popContext];
-    [FastGui pushContext:table.context];
-    [table.context beginTable];
+    [FastGui pushContext: ctx];
+    [ctx beginTable];
     
     if (resultBlock == nil) {
         return nil;
