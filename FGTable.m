@@ -52,6 +52,8 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 
 @property (nonatomic, strong) UIRefreshControl *refreshControl;
 
+@property (nonatomic, assign) BOOL headerAffixEnabled;
+
 @end
 
 @interface UITableView(FGTable)
@@ -82,6 +84,16 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 @end
 
 @interface FGTableBootstrapContext :NSObject<FGContext>
+
+@end
+
+@interface FGTableHeaderWrapperView : UIView
+
+@property (nonatomic, strong) UIView * contentView;
+
+@property (nonatomic, weak) UITableView * tableView;
+
+- (void) updateContentView: (UIView *) contentView;
 
 @end
 
@@ -378,13 +390,13 @@ static NSString * tableRefreshControlReuseId;
             
             applyStyleBlock(cell.innerView);
             
-            [cell applyStyleAfterAddedToSuperviewWithBlock:^(UIView *view) {
-                UITableViewCell *cell = (UITableViewCell *)view;
-                applyStyleBlock(cell.innerView);
-                if (cell.innerView != cell) {
-                    cell.innerView.frame = CGRectMake(0, 0, cell.contentView.frame.size.width, cell.contentView.frame.size.height);
-                }
-            }];
+//            [cell applyStyleAfterAddedToSuperviewWithBlock:^(UIView *view) {
+//                UITableViewCell *cell = (UITableViewCell *)view;
+//                applyStyleBlock(cell.innerView);
+//                if (cell.innerView != cell) {
+//                    cell.innerView.frame = CGRectMake(0, 0, cell.contentView.frame.size.width, cell.contentView.frame.size.height);
+//                }
+//            }];
             
             return cell;
         } outputIsNewView:NULL];
@@ -418,16 +430,28 @@ static NSString * tableRefreshControlReuseId;
         }
     }else if(self.mode == FGTableViewContextModeHeader)
     {
-        UIView *oldView = self.tableView.tableHeaderView;
+        FGTableHeaderWrapperView *headerView = (FGTableHeaderWrapperView *)self.tableView.tableHeaderView;
+        if (![headerView isKindOfClass:[FGTableHeaderWrapperView class]]) {
+            headerView = nil;
+        }
+        UIView *oldView = headerView.contentView;
         if (![oldView.reuseId isEqualToString:reuseId]) {
             oldView = nil;
         }
         UIView *newView = initBlock(oldView);
         if (newView != oldView) {
-            self.tableView.tableHeaderView = newView;
             newView.reuseId = reuseId;
+            newView.frame = CGRectMake(0, 0, self.tableView.frame.size.width, newView.frame.size.height);
+            [newView sizeStyleSetFrame];
+            [newView positionStyleDisabledWithTip:@"you cannot set position of table header view"];
         }
         applyStyleBlock(newView);
+        if (headerView == nil) {
+            headerView = [[FGTableHeaderWrapperView alloc] init];
+        }
+        headerView.tableView = self.tableView;
+        [headerView updateContentView:newView];
+        self.tableView.tableHeaderView = headerView;
         self.mode = FGTableViewContextModeCell;
         if (resultBlock == nil) {
             return nil;
@@ -442,10 +466,14 @@ static NSString * tableRefreshControlReuseId;
         }
         UIView *newView = initBlock(oldView);
         if (newView != oldView) {
-            self.tableView.tableFooterView = newView;
             newView.reuseId = reuseId;
+            newView.frame = CGRectMake(0, 0, self.tableView.frame.size.width, newView.frame.size.height);
+            [newView sizeStyleSetFrame];
+            [newView positionStyleDisabledWithTip:@"you cannot set position of table footer view"];
         }
         applyStyleBlock(newView);
+        self.tableView.tableFooterView = newView;
+        
         self.mode = FGTableViewContextModeCell;
         if (resultBlock == nil) {
             return nil;
@@ -644,6 +672,25 @@ static void * CellHeightPropertyKey = &CellHeightPropertyKey;
     return footer.cellHeight;
 }
 
+- (void)scrollViewDidScroll:(UIScrollView *)scrollView
+{
+    UITableView *tableView = (UITableView *) scrollView;
+    if (self.headerAffixEnabled) {
+        CGFloat scrollPos = tableView.contentOffset.y;
+        FGTableHeaderWrapperView *wrapper = (FGTableHeaderWrapperView *) tableView.tableHeaderView;
+        if (![wrapper isKindOfClass:[FGTableHeaderWrapperView class]]) {
+            return;
+        }
+        if(scrollPos < 0){
+            wrapper.contentView.frame = CGRectMake(0, scrollPos, tableView.tableHeaderView.frame.size.width, tableView.tableHeaderView.frame.size.height);
+        }else{
+            wrapper.contentView.frame = CGRectMake(0, 0, tableView.tableHeaderView.frame.size.width, tableView.tableHeaderView.frame.size.height);
+        }
+        if (self.refreshControl != nil) {
+            self.refreshControl.bounds = CGRectMake(self.refreshControl.bounds.origin.x, -wrapper.contentView.frame.size.height, self.refreshControl.bounds.size.width, self.refreshControl.bounds.size.height);
+        }
+    }
+}
 
 @end
 
@@ -787,6 +834,32 @@ static void * IsHeaderPropertyKey = &IsHeaderPropertyKey;
             table.separatorStyle = style;
         }
     }];
+}
+
++ (void)tableHeaderAffixTop: (BOOL) enableAffix
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        FGTableData *tableData;
+        if ([view isKindOfClass:[UITableView class]] && (tableData = ((UITableView *)view).fg_tableData) != nil) {
+            tableData.headerAffixEnabled = enableAffix;
+        }
+    }];
+    
+}
+
+@end
+
+@implementation FGTableHeaderWrapperView
+
+- (void) updateContentView:(UIView *)contentView
+{
+    if (self.contentView != contentView) {
+        [self.contentView removeFromSuperview];
+        [self addSubview:contentView];
+        self.contentView = contentView;
+        self.frame = CGRectMake(0, 0, self.tableView.frame.size.width, (int)self.contentView.frame.size.height);
+        self.contentView.frame = CGRectMake(0, 0, self.tableView.frame.size.width, (int)self.contentView.frame.size.height);
+    }
 }
 
 @end

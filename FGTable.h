@@ -46,4 +46,6 @@
 
 + (void)tableSeparatorStyle:(UITableViewCellSeparatorStyle) style;
 
++ (void)tableHeaderAffixTop: (BOOL) enableAffix;
+
 @end
