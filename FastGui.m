@@ -16,6 +16,7 @@ static void * ParentContextPropertyKey = &ParentContextPropertyKey;
 @implementation FastGui
 
 static id<FGContext> _context = nil;
+static id<FGContext> _nextContext = nil;
 
 + (void) setContext: (id<FGContext>) context
 {
@@ -81,7 +82,7 @@ static NSString *_styleClassRaw;
 
 + (void)setRootContext:(id<FGContext>)context
 {
-    self.context = context;
+    _nextContext = context;
 }
 
 + (void) customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
@@ -144,6 +145,10 @@ static NSString *_styleClassRaw;
 + (void) reloadGui
 {
     dispatch_async(dispatch_get_main_queue(), ^{
+        if (_nextContext != nil) {
+            _context = _nextContext;
+            _nextContext = nil;
+        }
         [self reloadGuiProtectContext];
     });
 }
@@ -166,6 +171,10 @@ static NSString *_styleClassRaw;
 + (void)reloadGuiWithBeforeBlock:(FGVoidBlock)before withAfterBlock:(FGVoidBlock)after
 {
     dispatch_async(dispatch_get_main_queue(), ^{
+        if (_nextContext != nil) {
+            _context = _nextContext;
+            _nextContext = nil;
+        }
         if (before != nil) {
             before();
         }
@@ -179,7 +188,11 @@ static NSString *_styleClassRaw;
 + (void)reloadGuiAfterTimeInterval:(NSTimeInterval)after
 {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(after * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        [self.context reloadGui];
+        if (_nextContext != nil) {
+            _context = _nextContext;
+            _nextContext = nil;
+        }
+        [self reloadGuiProtectContext];
     });
 }
 

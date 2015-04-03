@@ -16,6 +16,7 @@
 #import "FGStyle.h"
 #import <REKit/REKit.h>
 #import "UIView+changingResult.h"
+#import "FGTextFieldDismissFirstResponderTouchOutside.h"
 
 @interface FGColoredBlock : UIView<FGStylable>
 
@@ -255,7 +256,7 @@
     return [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
         UITextField *text = (UITextField *) reuseView;
         if (text == nil) {
-            text = [[UITextField alloc] init];
+            text = [[FGTextFieldDismissFirstResponderTouchOutside alloc] init];
             [text bk_addEventHandler:^(id sender) {
                 [FastGui reloadGui];
             } forControlEvents:UIControlEventEditingChanged];

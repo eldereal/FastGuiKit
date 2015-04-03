@@ -14,6 +14,8 @@ typedef id<FGWithReuseId> (^FGInitReuseItemBlock) (id<FGWithReuseId> reuseItem);
 
 @interface FGReuseItemPool : NSObject
 
+- (instancetype)initWithArray:(NSArray *) array;
+
 @property (nonatomic, strong, readonly) NSArray * items;
 
 - (void) prepareUpdateItems;

@@ -22,6 +22,8 @@
 
 @implementation FGReuseItemPool
 
+
+
 - (NSMutableArray *)mutableItems
 {
     return (NSMutableArray *) _items;
@@ -41,6 +43,15 @@
         self.mutableItems = [NSMutableArray array];
         self.needAddItems = [NSMutableArray array];
         self.needRemoveItems = [NSMutableArray array];
+    }
+    return self;
+}
+
+- (instancetype)initWithArray:(NSArray *)array
+{
+    self = [self init];
+    if (self) {
+        [self.mutableItems addObjectsFromArray:array];
     }
     return self;
 }
