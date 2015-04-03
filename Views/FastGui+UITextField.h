@@ -29,6 +29,8 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 
 + (NSString *) textField;
 
++ (NSString *) textFieldWithText: (NSString *) text placeHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus styleClass: (NSString *)styleClass;
+
 + (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder;
 
 + (NSString *) textFieldWithStyleClass: (NSString *)styleClass;

@@ -17,15 +17,14 @@ static void * ApplyStyleAfterAddedToSuperviewPropertyKey = &ApplyStyleAfterAdded
 
 - (void)applyStyleAfterAddedToSuperviewWithBlock:(FGStyleBlock)applyStyleBlock
 {
-    __weak UIView* weakSelf = self;
-    [self respondsToSelector:@selector(didMoveToSuperview) withKey:nil usingBlock:^(id receiver){
-        void(*superblock)(id target, SEL selector) = (void(*)(id target, SEL selector))[receiver supermethodOfCurrentBlock];
+    static NSString * overrideKey = @"applyStyleAfterAddedToSuperviewWithBlock";
+    [self respondsToSelector:@selector(didMoveToSuperview) withKey:overrideKey usingBlock:^(UIView * self){
+        void(*superblock)(id target, SEL selector) = (void(*)(id target, SEL selector))[self supermethodOfCurrentBlock];
         if (superblock) {
             superblock(self, @selector(didMoveToSuperview));
         }
-        if (weakSelf != nil) {
-            applyStyleBlock(weakSelf);
-        }
+        applyStyleBlock(self);
+        [self removeCurrentBlock];
     }];
     
 }

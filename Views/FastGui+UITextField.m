@@ -18,6 +18,7 @@
 #import "FGStyle.h"
 #import "UIView+changingResult.h"
 #import "UITextField+dismissFirstResponderTouchOutside.h"
+#import "UIView+changingResult.h"
 
 @interface UITextField(FastGui_UITextField)
 
@@ -29,59 +30,64 @@
 
 + (NSString *) textField
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:nil isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil text:nil placeHolder:nil isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:placeHolder isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil text:nil placeHolder:placeHolder isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) textFieldWithStyleClass: (NSString *)styleClass
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:nil isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:nil isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:placeHolder isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:placeHolder isPassword:NO focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *)textFieldWithPlaceHolder:(NSString *)placeHolder focus:(FGTextFieldFocus)focus styleClass:(NSString *)styleClass
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:placeHolder isPassword:NO focus: focus update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:placeHolder isPassword:NO focus: focus update:FGTextFieldUpdateShortAfterChange];
+}
+
++ (NSString *) textFieldWithText: (NSString *) text placeHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus styleClass: (NSString *)styleClass
+{
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:text placeHolder:placeHolder isPassword:NO focus: focus update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) passwordField
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:nil isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil text:nil placeHolder:nil isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:placeHolder isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil text:nil placeHolder:placeHolder isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) passwordFieldWithStyleClass: (NSString *)styleClass
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:nil isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:nil isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 + (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:placeHolder isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:placeHolder isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
 
-+ (NSString *) textFieldWithReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass  placeHolder: (NSString *)placeHolder isPassword: (BOOL) isPassword focus:(FGTextFieldFocus)focus update: (FGTextFieldUpdate) updatePolicy
++ (NSString *) textFieldWithReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass text:(NSString *)text placeHolder: (NSString *)placeHolder isPassword: (BOOL) isPassword focus:(FGTextFieldFocus)focus update: (FGTextFieldUpdate) updatePolicy
 {
     return [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UITextField *text = (UITextField *) reuseView;
-        if (text == nil) {
-            text = [[UITextField alloc] init];
+        UITextField *textField = (UITextField *) reuseView;
+        if (textField == nil) {
+            textField = [[UITextField alloc] init];
             
             if (focus & FGTextFieldFocusAtStart) {
-                [text respondsToSelector:@selector(didMoveToSuperview) withKey:nil usingBlock:^(UITextField* text){
+                [textField respondsToSelector:@selector(didMoveToSuperview) withKey:nil usingBlock:^(UITextField* text){
                     [text becomeFirstResponder];
                     void (*super)(id, SEL) = (void (*)(id, SEL)) [text supermethodOfCurrentBlock];
                     if (super) {
@@ -90,15 +96,22 @@
                 }];
             }
         }
-        [text bk_removeEventHandlersForControlEvents:UIControlEventEditingChanged];
+        if (!textField.changingResult && text != nil) {
+            textField.text = text;
+        }
+        [textField bk_removeEventHandlersForControlEvents:UIControlEventEditingChanged];
         if (updatePolicy == FGTextFieldUpdateOnChange) {
-            [text bk_addEventHandler:^(id sender) {
-                [FastGui reloadGui];
+            [textField bk_addEventHandler:^(id sender) {
+                [FastGui reloadGuiWithBeforeBlock:^{
+                    textField.changingResult = textField.text;
+                } withAfterBlock:^{
+                    textField.changingResult = nil;
+                }];
             } forControlEvents:UIControlEventEditingChanged];
         }
         else if(updatePolicy == FGTextFieldUpdateShortAfterChange)
         {
-            [text bk_addEventHandler:^(UITextField * text) {
+            [textField bk_addEventHandler:^(UITextField * text) {
                 text.fg_nextUpdateTime = [NSDate dateWithTimeIntervalSinceNow:0.5];
                 
                 FGVoidBlock update;
@@ -110,7 +123,7 @@
                     NSTimeInterval timeToUpdate = [text.fg_nextUpdateTime timeIntervalSinceNow];
                     if (timeToUpdate < 0) {
                         text.fg_nextUpdateTime = nil;
-                        [FastGui reloadGui];
+                        [text reloadGuiChangingResult:text.text];
                     }else{
                         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeToUpdate+0.01) * NSEC_PER_SEC)), dispatch_get_main_queue(), weakUpdate);
                     }
@@ -118,15 +131,15 @@
                 dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.51 * NSEC_PER_SEC)), dispatch_get_main_queue(), update);
             } forControlEvents:UIControlEventEditingChanged];
         }
-        [text setDismissFirstResponderTouchOutsideEnabled:focus & FGTextFieldFocusDismissTouchOutside];
+        [textField setDismissFirstResponderTouchOutsideEnabled:focus & FGTextFieldFocusDismissTouchOutside];
         if (focus & FGTextFieldFocusSet) {
-            [text becomeFirstResponder];
+            [textField becomeFirstResponder];
         }else if (focus & FGTextFieldFocusDismiss) {
-            [text resignFirstResponder];
+            [textField resignFirstResponder];
         }
-        text.placeholder = placeHolder;
-        text.secureTextEntry = isPassword;
-        return text;
+        textField.placeholder = placeHolder;
+        textField.secureTextEntry = isPassword;
+        return textField;
     } resultBlock:^id(UIView *view) {
         UITextField *text = (UITextField *) view;
         return text.text;

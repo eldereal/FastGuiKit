@@ -390,13 +390,13 @@ static NSString * tableRefreshControlReuseId;
             
             applyStyleBlock(cell.innerView);
             
-//            [cell applyStyleAfterAddedToSuperviewWithBlock:^(UIView *view) {
-//                UITableViewCell *cell = (UITableViewCell *)view;
-//                applyStyleBlock(cell.innerView);
-//                if (cell.innerView != cell) {
-//                    cell.innerView.frame = CGRectMake(0, 0, cell.contentView.frame.size.width, cell.contentView.frame.size.height);
-//                }
-//            }];
+            [cell applyStyleAfterAddedToSuperviewWithBlock:^(UIView *view) {
+                UITableViewCell *cell = (UITableViewCell *)view;
+                applyStyleBlock(cell.innerView);
+                if (cell.innerView != cell) {
+                    cell.innerView.frame = CGRectMake(0, 0, cell.contentView.frame.size.width, cell.contentView.frame.size.height);
+                }
+            }];
             
             return cell;
         } outputIsNewView:NULL];
