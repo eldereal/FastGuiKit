@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
-@interface FGTextFieldDismissFirstResponderTouchOutside : UITextField
+@interface UITextField(dismissFirstResponderTouchOutside)
+
+- (void) setDismissFirstResponderTouchOutsideEnabled: (BOOL) enabled;
 
 @end

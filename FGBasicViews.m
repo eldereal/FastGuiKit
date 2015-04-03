@@ -14,9 +14,7 @@
 #import "FGTypes.h"
 #import "FGInternal.h"
 #import "FGStyle.h"
-#import <REKit/REKit.h>
 #import "UIView+changingResult.h"
-#import "FGTextFieldDismissFirstResponderTouchOutside.h"
 
 @interface FGColoredBlock : UIView<FGStylable>
 
@@ -208,66 +206,6 @@
         img.image = [UIImage imageNamed: name];
         return img;
     } resultBlock: nil];
-}
-
-+ (NSString *) textField
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:nil isPassword:NO];
-}
-
-+ (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:placeHolder isPassword:NO];
-}
-
-+ (NSString *) textFieldWithStyleClass: (NSString *)styleClass
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:nil isPassword:NO];
-}
-
-+ (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:placeHolder isPassword:NO];
-}
-
-+ (NSString *) passwordField
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:nil isPassword:YES];
-}
-
-+ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil placeHolder:placeHolder isPassword:YES];
-}
-
-+ (NSString *) passwordFieldWithStyleClass: (NSString *)styleClass
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:nil isPassword:YES];
-}
-
-+ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass
-{
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass placeHolder:placeHolder isPassword:YES];
-}
-
-
-+ (NSString *) textFieldWithReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass placeHolder: (NSString *)placeHolder isPassword: (BOOL) isPassword;
-{
-    return [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UITextField *text = (UITextField *) reuseView;
-        if (text == nil) {
-            text = [[FGTextFieldDismissFirstResponderTouchOutside alloc] init];
-            [text bk_addEventHandler:^(id sender) {
-                [FastGui reloadGui];
-            } forControlEvents:UIControlEventEditingChanged];
-        }
-        text.placeholder = placeHolder;
-        text.secureTextEntry = isPassword;
-        return text;
-    } resultBlock:^id(UIView *view) {
-        UITextField *text = (UITextField *) view;
-        return text.text;
-    }];
 }
 
 + (NSInteger)segmentControlWithReuseId: (NSString *) reuseId

@@ -25,5 +25,6 @@
 
 #include "FastGui+UIPickerView.h"
 #include "FastGui+UIButton.h"
+#include "FastGui+UITextField.h"
 
 #endif

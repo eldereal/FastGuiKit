@@ -50,22 +50,6 @@
 //+ (void)imageWithReuseId:(NSString *)reuseId imageNamed: (NSString *)name styleClass: (NSString *)styleClass;
 
 
-+ (NSString *) textField;
-
-+ (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder;
-
-+ (NSString *) textFieldWithStyleClass: (NSString *)styleClass;
-
-+ (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass;
-
-+ (NSString *) passwordField;
-
-+ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder;
-
-+ (NSString *) passwordFieldWithStyleClass: (NSString *)styleClass;
-
-+ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass;
-
 + (NSUInteger) segmentControlWithItems: (NSArray *) items;
 
 + (NSUInteger) segmentControlWithItems: (NSArray *) items selectedSegmentIndex: (NSInteger) selectedSegmentIndex;

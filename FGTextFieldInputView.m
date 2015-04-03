@@ -15,7 +15,7 @@
 #import "UIView+changingResult.h"
 #import "FGViewGroup.h"
 #import "FGNullViewContext.h"
-#import "FGTextFieldDismissFirstResponderTouchOutside.h"
+#import "UITextField+dismissFirstResponderTouchOutside.h"
 
 @interface FGTextFieldInputViewContext : FGNullViewContext
 
@@ -66,7 +66,8 @@ static void * InputViewOfTextFieldDismissMethodKey = &InputViewOfTextFieldDismis
     UITextField *textField = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
         UITextField *textField = (UITextField *) reuseView;
         if (textField == nil) {
-            textField = [[FGTextFieldDismissFirstResponderTouchOutside alloc] init];
+            textField = [[UITextField alloc] init];
+            [textField setDismissFirstResponderTouchOutsideEnabled:YES];
             [textField respondsToSelector:@selector(caretRectForPosition:) withKey:nil usingBlock:^CGRect(id self){
                 return CGRectZero;
             }];
