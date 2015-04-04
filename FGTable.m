@@ -38,6 +38,10 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 
 @property (nonatomic, assign) FGTableViewContextMode mode;
 
+@property (nonatomic, assign) BOOL hasTableHeaderView;
+
+@property (nonatomic, assign) BOOL hasTableFooterView;
+
 - (void) beginTable;
 
 - (void) endTable;
@@ -288,6 +292,8 @@ static NSString * tableRefreshControlReuseId;
 - (void)beginTable
 {
     [self.tableView.fg_tableData.pool prepareUpdateItems];
+    self.hasTableHeaderView = NO;
+    self.hasTableFooterView = NO;
 }
 
 - (void) overrideSizeStyle: (id<FGTableItem>) cell
@@ -430,6 +436,7 @@ static NSString * tableRefreshControlReuseId;
         }
     }else if(self.mode == FGTableViewContextModeHeader)
     {
+        self.hasTableHeaderView = YES;
         FGTableHeaderWrapperView *headerView = (FGTableHeaderWrapperView *)self.tableView.tableHeaderView;
         if (![headerView isKindOfClass:[FGTableHeaderWrapperView class]]) {
             headerView = nil;
@@ -460,6 +467,7 @@ static NSString * tableRefreshControlReuseId;
         }
     }else if(self.mode == FGTableViewContextModeFooter)
     {
+        self.hasTableFooterView = YES;
         UIView *oldView = self.tableView.tableFooterView;
         if (![oldView.reuseId isEqualToString:reuseId]) {
             oldView = nil;
@@ -557,6 +565,12 @@ static NSString * tableRefreshControlReuseId;
             [data addObject: currentSection];
         }
         [self.tableView reloadData];
+    }
+    if (!self.hasTableHeaderView && self.tableView.tableHeaderView != nil) {
+        self.tableView.tableHeaderView = nil;
+    }
+    if (!self.hasTableFooterView && self.tableView.tableFooterView != nil) {
+        self.tableView.tableFooterView = nil;
     }
     [FastGui popContext];
 }
