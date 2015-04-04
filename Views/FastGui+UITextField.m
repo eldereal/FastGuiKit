@@ -162,6 +162,7 @@
                 self.continuousChangeEventDispatched = NO;
                 [self tryReloadGuiAfterContinuousEdit];
             });
+            self.continuousChangeEventDispatched = YES;
         }
     }else{
         [self reloadGuiChangingResult:self.text];
