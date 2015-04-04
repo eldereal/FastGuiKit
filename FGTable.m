@@ -692,16 +692,24 @@ static void * CellHeightPropertyKey = &CellHeightPropertyKey;
     if (self.headerAffixEnabled) {
         CGFloat scrollPos = tableView.contentOffset.y;
         FGTableHeaderWrapperView *wrapper = (FGTableHeaderWrapperView *) tableView.tableHeaderView;
-        if (![wrapper isKindOfClass:[FGTableHeaderWrapperView class]]) {
-            return;
-        }
-        if(scrollPos < 0){
-            wrapper.contentView.frame = CGRectMake(0, scrollPos, tableView.tableHeaderView.frame.size.width, tableView.tableHeaderView.frame.size.height);
+        if ([wrapper isKindOfClass:[FGTableHeaderWrapperView class]]) {
+            if(scrollPos < 0){
+                wrapper.contentView.frame = CGRectMake(0, scrollPos, tableView.tableHeaderView.frame.size.width, tableView.tableHeaderView.frame.size.height);
+            }else{
+                wrapper.contentView.frame = CGRectMake(0, 0, tableView.tableHeaderView.frame.size.width, tableView.tableHeaderView.frame.size.height);
+            }
+            if (self.refreshControl != nil) {
+                self.refreshControl.bounds = CGRectMake(self.refreshControl.bounds.origin.x, -wrapper.contentView.frame.size.height, self.refreshControl.bounds.size.width, self.refreshControl.bounds.size.height);
+            }
         }else{
-            wrapper.contentView.frame = CGRectMake(0, 0, tableView.tableHeaderView.frame.size.width, tableView.tableHeaderView.frame.size.height);
+            if (self.refreshControl != nil) {
+                self.refreshControl.bounds = CGRectMake(self.refreshControl.bounds.origin.x, 0, self.refreshControl.bounds.size.width, self.refreshControl.bounds.size.height);
+            }
         }
+        
+    }else{
         if (self.refreshControl != nil) {
-            self.refreshControl.bounds = CGRectMake(self.refreshControl.bounds.origin.x, -wrapper.contentView.frame.size.height, self.refreshControl.bounds.size.width, self.refreshControl.bounds.size.height);
+            self.refreshControl.bounds = CGRectMake(self.refreshControl.bounds.origin.x, 0, self.refreshControl.bounds.size.width, self.refreshControl.bounds.size.height);
         }
     }
 }
