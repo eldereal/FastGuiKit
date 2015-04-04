@@ -7,22 +7,25 @@
 //
 
 #import "FastGui.h"
+#import "FGStyle.h"
 #import <objc/runtime.h>
 
 typedef NS_ENUM(NSUInteger, FGTextFieldFocus)
 {
     FGTextFieldFocusNone = 0,
     FGTextFieldFocusDismissTouchOutside = 1,
-    FGTextFieldFocusAtStart = 2,
-    FGTextFieldFocusSet = 4,
-    FGTextFieldFocusDismiss = 8
+    FGTextFieldFocusDismissOnReturn = 2,
+    FGTextFieldFocusAtStart = 4,
+    FGTextFieldFocusSet = 8,
+    FGTextFieldFocusDismiss = 16
 };
 
 typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 {
     FGTextFieldUpdateNone = 0,
-    FGTextFieldUpdateOnChange,
-    FGTextFieldUpdateShortAfterChange
+    FGTextFieldUpdateOnChange = 1,
+    FGTextFieldUpdateShortAfterChange = 2,
+    FGTextFieldUpdateOnReturn = 4
 };
 
 @interface FastGui (UITextField)
@@ -46,5 +49,11 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 + (NSString *) passwordFieldWithStyleClass: (NSString *)styleClass;
 
 + (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass;
+
+@end
+
+@interface FGStyle(UITextField)
+
++ (void) textFieldReturnKey: (UIReturnKeyType) returnKey;
 
 @end

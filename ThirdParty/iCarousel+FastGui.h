@@ -32,6 +32,8 @@
 
 + (void) carouselScrollEnabled: (BOOL) scrollEnabled;
 
++ (void) carouselAutoScrollInterval: (NSTimeInterval) autoscrollInterval;
+
 + (void) carouselType: (iCarouselType) type;
 
 + (void) carouselBounces: (BOOL) bounces;

@@ -96,46 +96,42 @@
 
 + (void) touchableBlockWithCallback:(FGVoidBlock)callback
 {
-    [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:callback styleClass:nil];
+    if([self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil]){
+        callback();
+    }
 }
 
 + (void) touchableBlockWithCallback:(FGVoidBlock)callback styleClass:(NSString *)styleClass
 {
-    [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:callback styleClass:styleClass];
+    if([self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass]){
+        callback();
+    }
 }
 
 + (BOOL) touchableBlock
 {
-    return [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:nil styleClass:nil];
+    return [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:nil];
 }
 
 + (BOOL) touchableBlockWithStyleClass:(NSString *)styleClass
 {
-    return [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] withCallback:nil styleClass:styleClass];
+    return [self touchableBlockWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass];
 }
 
-+ (BOOL) touchableBlockWithReuseId:(NSString *) reuseId withCallback: (FGVoidBlock)callback styleClass:(NSString *)styleClass
++ (BOOL) touchableBlockWithReuseId:(NSString *) reuseId styleClass:(NSString *)styleClass
 {
-    UIControl *ctrl = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UIControl *ctrl = (UIControl *) reuseView;
-        if (ctrl == nil) {
-            ctrl = [[UIControl alloc] init];
+    UIView *view = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *view) {
+        if (view == nil) {
+            view = [[UIView alloc] init];
+            [view addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:view action:@selector(notify) ]];
+            static NSString * overrideKey = @"FastGui_touchableBlockWithReuseId";
+            [view respondsToSelector:@selector(notify) withKey:overrideKey usingBlock:^(UIView * view){
+                [view reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
+            }];
         }
-        if (ctrl.changingResult == nil) {
-            [ctrl bk_removeEventHandlersForControlEvents:UIControlEventTouchUpInside];
-            if (callback == nil) {
-                [ctrl bk_addEventHandler: ^(UIControl * sender){
-                    [sender reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
-                } forControlEvents:UIControlEventTouchUpInside];
-            }else{
-                [ctrl bk_addEventHandler: ^(UIControl * sender){
-                    callback();
-                } forControlEvents:UIControlEventTouchUpInside];
-            }
-        }
-        return ctrl;
+        return view;
     } resultBlock:^(id view){ return view; }];
-    return [(NSNumber *)ctrl.changingResult boolValue];
+    return [(NSNumber *)view.changingResult boolValue];
 }
 
 + (void)labelWithText:(NSString *)text

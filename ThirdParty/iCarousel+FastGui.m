@@ -26,6 +26,10 @@
 
 @property (nonatomic, assign) BOOL isWrapEnabled;
 
+@property (nonatomic, assign) CGFloat autopaging;
+
+@property (nonatomic, assign) BOOL dispatchingNextPage;
+
 @end
 
 static void * CarouselSelectedIndexMethodKey = &CarouselSelectedIndexMethodKey;
@@ -92,7 +96,47 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
     [self.parentContext styleSheet];
 }
 
+- (void)setAutopaging:(CGFloat)autopaging
+{
+    _autopaging = autopaging;
+    [self updateDispatching];
+}
 
+- (void)setPagingEnabled:(BOOL)pagingEnabled
+{
+    [super setPagingEnabled:pagingEnabled];
+    if (pagingEnabled) {
+        self.autoscroll = 0;
+    }
+    [self updateDispatching];
+}
+
+- (void)setAutoscroll:(CGFloat)autoscroll
+{
+    if (self.pagingEnabled) {
+        self.autopaging = autoscroll;
+        [super setAutoscroll:0];
+    }else{
+        [super setAutoscroll:autoscroll];
+    }
+    [self updateDispatching];
+}
+
+- (void) updateDispatching
+{
+    if (self.autopaging > 0 && self.pagingEnabled && !self.dispatchingNextPage) {
+        __weak FGCarousel * weakSelf = self;
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(1/self.autopaging * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+            if (weakSelf == nil) {
+                return;
+            }
+            [weakSelf scrollToItemAtIndex:self.isWrapEnabled ? (weakSelf.currentItemIndex + 1) : (weakSelf.currentItemIndex + 1) % self.numberOfItems animated:YES];
+            weakSelf.dispatchingNextPage = NO;
+            [weakSelf updateDispatching];
+        });
+        self.dispatchingNextPage = YES;
+    }
+}
 
 - (id) customData:(void *)key data:(NSDictionary *)data
 {
@@ -204,6 +248,15 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
     [FGStyle customStyleWithBlock:^(UIView *view) {
         if ([view isKindOfClass:[FGCarousel class]]) {
             ((FGCarousel *) view).scrollEnabled = scrollEnabled;
+        }
+    }];
+}
+
++ (void)carouselAutoScrollInterval:(NSTimeInterval)autoscrollInterval
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[FGCarousel class]]) {
+            ((FGCarousel *) view).autoscroll = 1/autoscrollInterval;
         }
     }];
 }
