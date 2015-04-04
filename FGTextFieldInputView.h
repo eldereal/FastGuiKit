@@ -10,15 +10,15 @@
 
 @interface FastGui (FGTextFieldInputView)
 
-+ (NSString *) beginInputViewOfTextFieldWithText:(NSString *) text;
+//+ (NSString *) beginInputViewOfTextFieldWithText:(NSString *) text;
+//
+//+ (NSString *) beginInputViewOfTextFieldWithText:(NSString *) text styleClass:(NSString *) styleClass;
+//
+//+ (NSString *) beginInputViewOfTextField;
+//
+//+ (NSString *) beginInputViewOfTextFieldWithStyleClass:(NSString *) styleClass;
 
-+ (NSString *) beginInputViewOfTextFieldWithText:(NSString *) text styleClass:(NSString *) styleClass;
-
-+ (NSString *) beginInputViewOfTextField;
-
-+ (NSString *) beginInputViewOfTextFieldWithStyleClass:(NSString *) styleClass;
-
-+ (void) inputViewOfTextFieldDismiss;
++ (void) beginInputViewWithNextTextField;
 
 + (void) endInputViewOfTextField;
 

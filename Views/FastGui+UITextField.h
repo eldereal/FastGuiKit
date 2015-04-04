@@ -32,7 +32,7 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 
 + (NSString *) textField;
 
-+ (NSString *) textFieldWithText: (NSString *) text placeHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus styleClass: (NSString *)styleClass;
++ (NSString *) textFieldWithText: (NSString *) text placeHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus update: (FGTextFieldUpdate) updatePolicy styleClass: (NSString *)styleClass;
 
 + (NSString *) textFieldWithPlaceHolder: (NSString *)placeHolder;
 
@@ -55,5 +55,7 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 @interface FGStyle(UITextField)
 
 + (void) textFieldReturnKey: (UIReturnKeyType) returnKey;
+
++ (void) textFieldCaretColor: (UIColor *) color;
 
 @end

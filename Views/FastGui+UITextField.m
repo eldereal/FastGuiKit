@@ -8,11 +8,6 @@
 
 #import "FastGui+UITextField.h"
 
-#import <objc/runtime.h>
-#import <REKit/REKit.h>
-#import <BlocksKit/BlocksKit.h>
-#import <BlocksKit/BlocksKit+UIKit.h>
-
 #import "FGTypes.h"
 #import "FGInternal.h"
 #import "FGStyle.h"
@@ -20,11 +15,28 @@
 #import "UITextField+dismissFirstResponderTouchOutside.h"
 #import "UIView+changingResult.h"
 
-@interface UITextField(FastGui_UITextField)
+@interface FGTextField : UITextField
 
-@property (nonatomic, strong) NSDate * fg_nextUpdateTime;
+@property (nonatomic, assign) BOOL becomeFirstResponderOnStart;
+
+@property (nonatomic, assign) BOOL dismissFirstResponderOnTouchOutside;
+@property (nonatomic, assign) BOOL dismissFirstResponderOnReturn;
+
+
+@property (nonatomic, assign) BOOL updateGuiOnReturnKey;
+@property (nonatomic, assign) BOOL updateGuiOnChange;
+@property (nonatomic, assign) BOOL updateGuiAfterContinuousChangeEnded;
+
+@property (nonatomic, assign) BOOL continuousChangeEventDispatched;
+@property (nonatomic, strong) NSDate * nextUpdateTime;
+
+@property (nonatomic, assign) NSTimeInterval continuousChangeTime;
+
+@property (nonatomic, weak) UITapGestureRecognizer *dismissRecognizer;
+@property (nonatomic, weak) UIView *dismissRecognizerHolder;
 
 @end
+
 
 @implementation FastGui (UITextField)
 
@@ -53,9 +65,9 @@
     return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:placeHolder isPassword:NO focus: focus update:FGTextFieldUpdateShortAfterChange];
 }
 
-+ (NSString *) textFieldWithText: (NSString *) text placeHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus styleClass: (NSString *)styleClass
++ (NSString *) textFieldWithText: (NSString *) text placeHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus update: (FGTextFieldUpdate) updatePolicy styleClass: (NSString *)styleClass
 {
-    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:text placeHolder:placeHolder isPassword:NO focus: focus update:FGTextFieldUpdateShortAfterChange];
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:text placeHolder:placeHolder isPassword:NO focus: focus update:updatePolicy];
 }
 
 + (NSString *) passwordField
@@ -82,72 +94,22 @@
 + (NSString *) textFieldWithReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass text:(NSString *)text placeHolder: (NSString *)placeHolder isPassword: (BOOL) isPassword focus:(FGTextFieldFocus)focus update: (FGTextFieldUpdate) updatePolicy
 {
     return [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UITextField *textField = (UITextField *) reuseView;
+        FGTextField *textField = (FGTextField *) reuseView;
         if (textField == nil) {
-            textField = [[UITextField alloc] init];
-            
-            if (focus & FGTextFieldFocusAtStart) {
-                [textField respondsToSelector:@selector(didMoveToSuperview) withKey:nil usingBlock:^(UITextField* text){
-                    [text becomeFirstResponder];
-                    void (*super)(id, SEL) = (void (*)(id, SEL)) [text supermethodOfCurrentBlock];
-                    if (super) {
-                        super(text, @selector(didMoveToSuperview));
-                    }
-                }];
-            }
+            textField = [[FGTextField alloc] init];
         }
         if (!textField.changingResult && text != nil) {
             textField.text = text;
         }
         
-        [textField bk_removeEventHandlersForControlEvents:UIControlEventEditingChanged];
-        [textField bk_removeEventHandlersForControlEvents:UIControlEventEditingDidEndOnExit];
+        textField.updateGuiOnChange = updatePolicy & FGTextFieldUpdateOnChange;
+        textField.updateGuiAfterContinuousChangeEnded = updatePolicy & FGTextFieldUpdateShortAfterChange;
+        textField.updateGuiOnReturnKey = updatePolicy & FGTextFieldUpdateOnReturn;
         
-        if (updatePolicy & FGTextFieldUpdateOnChange) {
-            [textField bk_addEventHandler:^(id sender) {
-                [FastGui reloadGuiWithBeforeBlock:^{
-                    textField.changingResult = textField.text;
-                } withAfterBlock:^{
-                    textField.changingResult = nil;
-                }];
-            } forControlEvents:UIControlEventEditingChanged];
-        }
-        else if(updatePolicy & FGTextFieldUpdateShortAfterChange)
-        {
-            [textField bk_addEventHandler:^(UITextField * textField) {
-                textField.fg_nextUpdateTime = [NSDate dateWithTimeIntervalSinceNow:0.5];
-                
-                FGVoidBlock update;
-                __block __weak FGVoidBlock weakUpdate;
-                weakUpdate = update = ^{
-                    if (textField.fg_nextUpdateTime == nil) {
-                        return;
-                    }
-                    NSTimeInterval timeToUpdate = [textField.fg_nextUpdateTime timeIntervalSinceNow];
-                    if (timeToUpdate < 0) {
-                        textField.fg_nextUpdateTime = nil;
-                        [textField reloadGuiChangingResult:textField.text];
-                    }else{
-                        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((timeToUpdate+0.01) * NSEC_PER_SEC)), dispatch_get_main_queue(), weakUpdate);
-                    }
-                };
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.51 * NSEC_PER_SEC)), dispatch_get_main_queue(), update);
-            } forControlEvents:UIControlEventEditingChanged];
-        }
-        if (updatePolicy & FGTextFieldUpdateOnReturn) {
-            [textField bk_addEventHandler:^(UITextField * textField) {
-                [textField reloadGuiChangingResult:textField.text];
-            } forControlEvents: UIControlEventEditingDidEndOnExit];
-        }
+        textField.becomeFirstResponderOnStart = focus & FGTextFieldFocusAtStart;
+        textField.dismissFirstResponderOnTouchOutside = focus & FGTextFieldFocusDismissTouchOutside;
+        textField.dismissFirstResponderOnReturn = focus & FGTextFieldFocusDismissOnReturn;
         
-        [textField setDismissFirstResponderTouchOutsideEnabled:focus & FGTextFieldFocusDismissTouchOutside];
-        
-        if (focus & FGTextFieldFocusDismissOnReturn)
-        {
-            [textField bk_addEventHandler:^(UITextField * textField) {
-                [textField resignFirstResponder];
-            } forControlEvents: UIControlEventEditingDidEndOnExit];
-        }
         if (focus & FGTextFieldFocusSet) {
             [textField becomeFirstResponder];
         }else if (focus & FGTextFieldFocusDismiss) {
@@ -166,18 +128,91 @@
 
 @end
 
-@implementation UITextField(FastGui_UITextField)
+@implementation FGTextField
 
-static void * NextUpdateTimePropertyKey = &NextUpdateTimePropertyKey;
-
-- (NSDate *) fg_nextUpdateTime
+- (instancetype)init
 {
-    return objc_getAssociatedObject(self, NextUpdateTimePropertyKey);
+    self = [super init];
+    if (self) {
+        self.continuousChangeTime = 0.5;
+        [self addTarget:self action:@selector(returnKeyDidPress) forControlEvents:UIControlEventEditingDidEndOnExit];
+        [self addTarget:self action:@selector(textDidChange) forControlEvents:UIControlEventEditingChanged];
+    }
+    return self;
 }
 
-- (void)setFg_nextUpdateTime:(NSDate *)fg_nextUpdateTime
+- (void) textDidChange{
+    if (self.updateGuiOnChange) {
+        [self reloadGuiChangingResult:self.text];
+    }
+    else if (self.updateGuiAfterContinuousChangeEnded)
+    {
+        self.nextUpdateTime = [NSDate dateWithTimeIntervalSinceNow:self.continuousChangeTime];
+        [self tryReloadGuiAfterContinuousEdit];
+    }
+}
+
+- (void) tryReloadGuiAfterContinuousEdit
 {
-    objc_setAssociatedObject(self, NextUpdateTimePropertyKey, fg_nextUpdateTime, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+    if (self.nextUpdateTime == nil) {
+        return;
+    }
+    NSTimeInterval updateTimeSinceNow = [self.nextUpdateTime timeIntervalSinceNow];
+    if (updateTimeSinceNow > 0) {
+        if (!self.continuousChangeEventDispatched) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((updateTimeSinceNow + 0.01) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+                self.continuousChangeEventDispatched = NO;
+                [self tryReloadGuiAfterContinuousEdit];
+            });
+        }
+    }else{
+        [self reloadGuiChangingResult:self.text];
+    }
+}
+
+- (void) returnKeyDidPress
+{
+    if (self.dismissFirstResponderOnReturn) {
+        [self resignFirstResponder];
+    }
+    if (self.updateGuiOnReturnKey) {
+        [self reloadGuiChangingResult:self.text];
+    }
+}
+
+- (void)didMoveToSuperview
+{
+    [super didMoveToSuperview];
+    if (self.becomeFirstResponderOnStart) {
+        [self becomeFirstResponder];
+    }
+}
+
+- (BOOL)becomeFirstResponder
+{
+    if (self.dismissFirstResponderOnTouchOutside) {
+        if (self.dismissRecognizer == nil) {
+            UITapGestureRecognizer * r = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(resignFirstResponder)];
+            self.dismissRecognizer = r;
+            UIView *rootView = self;
+            while (rootView.superview != nil) {
+                rootView = rootView.superview;
+            }
+            [rootView addGestureRecognizer:r];
+            self.dismissRecognizerHolder = rootView;
+        }
+    }
+    return [super becomeFirstResponder];
+}
+
+-(BOOL)resignFirstResponder
+{
+    if (self.dismissRecognizer != nil) {
+        [self.dismissRecognizerHolder removeGestureRecognizer:self.dismissRecognizer];
+        self.dismissRecognizer = nil;
+        self.dismissRecognizerHolder = nil;
+    }
+    return [super resignFirstResponder];
 }
 
 @end
@@ -189,6 +224,15 @@ static void * NextUpdateTimePropertyKey = &NextUpdateTimePropertyKey;
     [FGStyle customStyleWithBlock:^(UIView *view) {
         if ([view isKindOfClass:[UITextField class]]) {
             ((UITextField *) view).returnKeyType = returnKey;
+        }
+    }];
+}
+
++ (void) textFieldCaretColor: (UIColor *) color
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[UITextField class]]) {
+            ((UITextField *) view).tintColor = color;
         }
     }];
 }

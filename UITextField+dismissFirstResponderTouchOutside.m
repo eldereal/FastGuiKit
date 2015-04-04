@@ -57,17 +57,7 @@ static void * DismissRecognizerHolderPropertyKey = &DismissRecognizerHolderPrope
         }
     }else{
         [self respondsToSelector:@selector(becomeFirstResponder) withKey:nil usingBlock:^BOOL(UITextField* self){
-            if (self.fg_dismissRecognizer == nil) {
-                UITapGestureRecognizer * r = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(resignFirstResponder)];
-                self.fg_dismissRecognizer = r;
-                UIView *rootView = self;
-                while (rootView.superview != nil) {
-                    rootView = rootView.superview;
-                }
-                [rootView addGestureRecognizer:r];
-                self.fg_dismissRecognizerHolder = rootView;
-            }
-            BOOL (*super)(id, SEL) = (BOOL (*)(id, SEL))([self supermethodOfCurrentBlock]);
+                        BOOL (*super)(id, SEL) = (BOOL (*)(id, SEL))([self supermethodOfCurrentBlock]);
             return super(self, @selector(becomeFirstResponder));
         }];
         [self respondsToSelector:@selector(resignFirstResponder) withKey:nil usingBlock:^BOOL(UITextField* self){
