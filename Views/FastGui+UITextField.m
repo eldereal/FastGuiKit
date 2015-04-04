@@ -12,8 +12,6 @@
 #import "FGInternal.h"
 #import "FGStyle.h"
 #import "UIView+changingResult.h"
-#import "UITextField+dismissFirstResponderTouchOutside.h"
-#import "UIView+changingResult.h"
 
 @interface FGTextField : UITextField
 

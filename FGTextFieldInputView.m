@@ -15,7 +15,6 @@
 #import "UIView+changingResult.h"
 #import "FGViewGroup.h"
 #import "FGNullViewContext.h"
-#import "UITextField+dismissFirstResponderTouchOutside.h"
 
 @interface FGTextFieldInputViewContext : FGNullViewContext
 
