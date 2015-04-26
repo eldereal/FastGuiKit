@@ -53,6 +53,7 @@
         scrollView.translatesAutoresizingMaskIntoConstraints = NO;
         
         layoutView.translatesAutoresizingMaskIntoConstraints = NO;
+        [layoutView setContentHuggingPriority:0 forAxis:UILayoutConstraintAxisVertical];
         layoutView.topConstraint = [scrollView updateConstraint:layoutView.leftConstraint view1:layoutView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:scrollView attribute:NSLayoutAttributeTop multiplier:1 constant:0];
         layoutView.bottomConstraint = [scrollView updateConstraint:layoutView.bottomConstraint view1:layoutView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:scrollView attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
         
