@@ -331,6 +331,7 @@ static NSString * tableRefreshControlReuseId;
             }else{
                 if (cell == nil) {
                     cell = [[UITableViewCell alloc] init];
+                    cell.backgroundColor = [UIColor clearColor];
                     [FGStyle updateStyleOfView:cell.contentView withBlock:^(UIView *view) {
                         [FGStyle left:0];
                         [FGStyle right:0];
