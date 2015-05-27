@@ -58,4 +58,6 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 
 + (void) textFieldCaretColor: (UIColor *) color;
 
++ (void) textFieldPlaceholderTextColor: (UIColor *) color;
+
 @end

@@ -236,4 +236,20 @@
     }];
 }
 
++ (void)textFieldPlaceholderTextColor:(UIColor *)color
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[UITextField class]]) {
+            NSMutableAttributedString *placeholder;
+            if ([((UITextField *) view).attributedPlaceholder isKindOfClass:[NSMutableAttributedString class]]) {
+                placeholder = (NSMutableAttributedString *)((UITextField *) view).attributedPlaceholder;
+                [placeholder addAttribute:NSForegroundColorAttributeName value:color range: NSMakeRange(0, placeholder.length)];
+            }else{
+                placeholder = [[NSMutableAttributedString alloc] initWithString:((UITextField *) view).placeholder attributes:@{ NSForegroundColorAttributeName: color }];
+            }
+            ((UITextField *) view).attributedPlaceholder = placeholder;
+        }
+    }];
+}
+
 @end
