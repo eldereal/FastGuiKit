@@ -33,6 +33,8 @@
 @property (nonatomic, weak) UITapGestureRecognizer *dismissRecognizer;
 @property (nonatomic, weak) UIView *dismissRecognizerHolder;
 
+@property (nonatomic, assign) UIEdgeInsets edgeInsets;
+
 @end
 
 
@@ -135,6 +137,7 @@
         self.continuousChangeTime = 0.5;
         [self addTarget:self action:@selector(returnKeyDidPress) forControlEvents:UIControlEventEditingDidEndOnExit];
         [self addTarget:self action:@selector(textDidChange) forControlEvents:UIControlEventEditingChanged];
+        self.edgeInsets = UIEdgeInsetsMake(0, 0, 0, 0);
     }
     return self;
 }
@@ -148,6 +151,14 @@
         self.nextUpdateTime = [NSDate dateWithTimeIntervalSinceNow:self.continuousChangeTime];
         [self tryReloadGuiAfterContinuousEdit];
     }
+}
+
+- (CGRect)textRectForBounds:(CGRect)bounds {
+    return [super textRectForBounds:UIEdgeInsetsInsetRect(bounds, self.edgeInsets)];
+}
+
+- (CGRect)editingRectForBounds:(CGRect)bounds {
+    return [super editingRectForBounds:UIEdgeInsetsInsetRect(bounds, self.edgeInsets)];
 }
 
 - (void) tryReloadGuiAfterContinuousEdit
@@ -251,5 +262,30 @@
         }
     }];
 }
+
++ (void)textFieldPadding:(UIEdgeInsets)padding
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[FGTextField class]]) {
+            ((FGTextField *) view).edgeInsets = padding;
+        }
+    }];
+}
+
++ (void)textFieldKeyboardType:(UIKeyboardType)type
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[UITextField class]]) {
+            if(type != ((UITextField *) view).keyboardType){
+                ((UITextField *) view).keyboardType = type;
+                if(((UITextField *) view).isFirstResponder){
+                    [((UITextField *) view) resignFirstResponder];
+                    [((UITextField *) view) becomeFirstResponder];
+                }
+            }
+        }
+    }];
+}
+
 
 @end

@@ -60,4 +60,8 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 
 + (void) textFieldPlaceholderTextColor: (UIColor *) color;
 
++ (void) textFieldPadding: (UIEdgeInsets) padding;
+
++ (void) textFieldKeyboardType:(UIKeyboardType) type;
+
 @end

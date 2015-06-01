@@ -90,8 +90,7 @@
         UIButton *btn = (UIButton *) reuseView;
         if (btn == nil){
             btn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [btn bk_addEventHandler:^(id sender) {
-                UIButton *btn = sender;
+            [btn bk_addEventHandler:^(UIButton *btn) {
                 btn.selected = !btn.selected;
                 [btn reloadGuiChangingResult:[NSNumber numberWithBool:btn.selected]];
             } forControlEvents:UIControlEventTouchUpInside];

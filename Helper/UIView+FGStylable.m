@@ -299,7 +299,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     [self setTranslatesAutoresizingMaskIntoConstraints:NO];
     if (self.superview != nil) {
         if (!isnan(heightPercentage)) {
-            self.heightConstraint = [self.superview updateConstraint:self.heightConstraint view1:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:heightPercentage/100 constant:0];
+            self.heightConstraint = [self.superview updateConstraint:self.heightConstraint view1:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeHeight multiplier:heightPercentage/100 constant:0];
         }else{
             if (self.heightConstraint != nil) {
                 [self.heightConstraint removeConstraint];
