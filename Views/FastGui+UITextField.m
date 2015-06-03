@@ -90,6 +90,11 @@
     return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:placeHolder isPassword:YES focus: FGTextFieldFocusDismissTouchOutside update:FGTextFieldUpdateShortAfterChange];
 }
 
++ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus styleClass: (NSString *)styleClass
+{
+    return [self textFieldWithReuseId:[FGInternal callerPositionAsReuseId] styleClass:styleClass text:nil placeHolder:placeHolder isPassword:YES focus: focus update:FGTextFieldUpdateShortAfterChange];
+}
+
 
 + (NSString *) textFieldWithReuseId: (NSString *)reuseId styleClass: (NSString *)styleClass text:(NSString *)text placeHolder: (NSString *)placeHolder isPassword: (BOOL) isPassword focus:(FGTextFieldFocus)focus update: (FGTextFieldUpdate) updatePolicy
 {

@@ -50,6 +50,8 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 
 + (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder styleClass: (NSString *)styleClass;
 
++ (NSString *) passwordFieldWithPlaceHolder: (NSString *)placeHolder focus: (FGTextFieldFocus) focus styleClass: (NSString *)styleClass;
+
 @end
 
 @interface FGStyle(UITextField)

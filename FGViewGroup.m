@@ -151,8 +151,9 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
     return nil;
 }
 
-- (void) setAndOverrideVerticalLayouts:(UIView *)view
+-(void) setAndOverrideVerticalLayouts:(UIView *)view
 {
+    view.bottomConstraint = nil;
     if (self.previousView == nil) {
         view.topConstraint = [self.groupView updateConstraint:view.topConstraint view1:view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.groupView attribute:NSLayoutAttributeTop multiplier:1 constant:0];
     }else{

@@ -114,6 +114,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setLeftConstraint:(NSLayoutConstraint *)leftConstraint
 {
+    if(leftConstraint == nil){
+        [self.leftConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, LeftConstraintPropertyKey, leftConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -124,6 +127,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setRightConstraint:(NSLayoutConstraint *)rightConstraint
 {
+    if(rightConstraint == nil){
+        [self.rightConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, RightConstraintPropertyKey, rightConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -135,6 +141,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setTopConstraint:(NSLayoutConstraint *)topConstraint
 {
+    if(topConstraint == nil){
+        [self.topConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, TopConstraintPropertyKey, topConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -145,6 +154,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setBottomConstraint:(NSLayoutConstraint *)bottomConstraint
 {
+    if(bottomConstraint == nil){
+        [self.bottomConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, BottomConstraintPropertyKey, bottomConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -155,6 +167,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setWidthConstraint:(NSLayoutConstraint *)widthConstraint
 {
+    if(widthConstraint == nil){
+        [self.widthConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, WidthConstraintPropertyKey, widthConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -165,6 +180,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setHeightConstraint:(NSLayoutConstraint *)heightConstraint
 {
+    if(heightConstraint == nil){
+        [self.heightConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, HeightConstraintPropertyKey, heightConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -175,6 +193,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setHorizontalCenterConstraint:(NSLayoutConstraint *)horizontalCenterConstraint
 {
+    if(horizontalCenterConstraint == nil){
+        [self.horizontalCenterConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, HorizontalCenterConstraintPropertyKey, horizontalCenterConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -185,6 +206,9 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (void)setVerticalCenterConstraint:(NSLayoutConstraint *)verticalCenterConstraint
 {
+    if(verticalCenterConstraint == nil){
+        [self.verticalCenterConstraint removeConstraint];
+    }
     objc_setAssociatedObject(self, VerticalCenterConstraintPropertyKey, verticalCenterConstraint, OBJC_ASSOCIATION_ASSIGN);
 }
 
@@ -200,10 +224,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(top)) {
             self.topConstraint = [self.superview updateConstraint:self.topConstraint view1:self attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeTop multiplier:1 constant:top];
         }else{
-            if (self.topConstraint != nil) {
-                [self.topConstraint removeConstraint];
-                self.topConstraint = nil;
-            }
+            self.topConstraint = nil;
         }
     }
 }
@@ -215,10 +236,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(right)) {
             self.rightConstraint = [self.superview  updateConstraint:self.rightConstraint view1:self attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeRight multiplier:1 constant: -right];
         }else{
-            if (self.rightConstraint != nil) {
-                [self.rightConstraint removeConstraint];
-                self.rightConstraint = nil;
-            }
+            self.rightConstraint = nil;
         }
     }
 }
@@ -230,10 +248,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(bottom)) {
             self.bottomConstraint = [self.superview updateConstraint:self.bottomConstraint view1:self attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeBottom multiplier:1 constant: -bottom];
         }else{
-            if (self.bottomConstraint != nil) {
-                [self.bottomConstraint removeConstraint];
-                self.bottomConstraint = nil;
-            }
+            self.bottomConstraint = nil;
         }
     }
 }
@@ -245,10 +260,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(left)) {
             self.leftConstraint = [self.superview updateConstraint:self.leftConstraint view1:self attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeLeft multiplier:1 constant:left];
         }else{
-            if (self.leftConstraint != nil) {
-                [self.leftConstraint removeConstraint];
-                self.leftConstraint = nil;
-            }
+            self.leftConstraint = nil;
         }
     }
 }
@@ -259,10 +271,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     if (!isnan(width)) {
         self.widthConstraint = [self updateConstraint:self.widthConstraint view1:self attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:width];
     }else{
-        if (self.widthConstraint != nil) {
-            [self.widthConstraint removeConstraint];
-            self.widthConstraint = nil;
-        }
+        self.widthConstraint = nil;
     }
 }
 
@@ -272,10 +281,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     if (!isnan(height)) {
         self.heightConstraint = [self updateConstraint:self.heightConstraint view1:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:nil attribute:NSLayoutAttributeNotAnAttribute multiplier:1 constant:height];
     }else{
-        if (self.heightConstraint != nil) {
-            [self.heightConstraint removeConstraint];
-            self.heightConstraint = nil;
-        }
+        self.heightConstraint = nil;
     }
 }
 
@@ -286,10 +292,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(widthPercentage)) {
             self.widthConstraint = [self.superview updateConstraint:self.widthConstraint view1:self attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeWidth multiplier:widthPercentage/100  constant:0];
         }else{
-            if (self.widthConstraint != nil) {
-                [self.widthConstraint removeConstraint];
-                self.widthConstraint = nil;
-            }
+            self.widthConstraint = nil;
         }
     }
 }
@@ -301,10 +304,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(heightPercentage)) {
             self.heightConstraint = [self.superview updateConstraint:self.heightConstraint view1:self attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeHeight multiplier:heightPercentage/100 constant:0];
         }else{
-            if (self.heightConstraint != nil) {
-                [self.heightConstraint removeConstraint];
-                self.heightConstraint = nil;
-            }
+            self.heightConstraint = nil;
         }
     }
 }
@@ -316,10 +316,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(leftPercentage)) {
             self.leftConstraint = [self.superview updateConstraint:self.leftConstraint view1:self attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeRight multiplier:leftPercentage/100 constant:0];
         }else{
-            if (self.leftConstraint != nil) {
-                [self.leftConstraint removeConstraint];
-                self.leftConstraint = nil;
-            }
+            self.leftConstraint = nil;
         }
     }
 }
@@ -331,10 +328,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(rightPercentage)) {
             self.rightConstraint = [self.superview  updateConstraint:self.rightConstraint view1:self attribute:NSLayoutAttributeRight relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeRight multiplier:1-rightPercentage/100 constant: 0];
         }else{
-            if (self.rightConstraint != nil) {
-                [self.rightConstraint removeConstraint];
-                self.rightConstraint = nil;
-            }
+            self.rightConstraint = nil;
         }
     }
 }
@@ -346,10 +340,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(topPercentage)) {
             self.topConstraint = [self.superview updateConstraint:self.topConstraint view1:self attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeBottom multiplier:topPercentage/100 constant:0];
         }else{
-            if (self.topConstraint != nil) {
-                [self.topConstraint removeConstraint];
-                self.topConstraint = nil;
-            }
+            self.topConstraint = nil;
         }
     }
 }
@@ -361,10 +352,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(horizontalCenter)) {
             self.horizontalCenterConstraint = [self.superview updateConstraint:self.horizontalCenterConstraint view1:self attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeCenterX multiplier:1 constant:horizontalCenter];
         }else{
-            if (self.horizontalCenterConstraint != nil) {
-                [self.horizontalCenterConstraint removeConstraint];
-                self.horizontalCenterConstraint = nil;
-            }
+            self.horizontalCenterConstraint = nil;
         }
     }
 }
@@ -376,10 +364,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(verticalCenter)) {
             self.verticalCenterConstraint = [self.superview updateConstraint:self.verticalCenterConstraint view1:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeCenterY multiplier:1 constant:verticalCenter];
         }else{
-            if (self.verticalCenterConstraint != nil) {
-                [self.verticalCenterConstraint removeConstraint];
-                self.verticalCenterConstraint = nil;
-            }
+            self.verticalCenterConstraint = nil;
         }
     }
 }
@@ -391,10 +376,7 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         if (!isnan(bottomPercentage)) {
             self.bottomConstraint = [self.superview updateConstraint:self.bottomConstraint view1:self attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeBottom multiplier:1-bottomPercentage/100 constant: 0];
         }else{
-            if (self.bottomConstraint != nil) {
-                [self.bottomConstraint removeConstraint];
-                self.bottomConstraint = nil;
-            }
+            self.bottomConstraint = nil;
         }
     }
 }
