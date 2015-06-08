@@ -31,25 +31,27 @@
 
 @property (nonatomic, strong) MKAnnotationView * view;
 
-@property (nonatomic, strong) UIView *customView;
+@end
+
+@interface FGMapView : MKMapView
 
 @end
 
-@interface FGMapViewContext : FGNullViewContext<MKMapViewDelegate>
+@interface FGMapViewContext : FGNullViewContext
 
-@property (nonatomic, weak) MKMapView *mapView;
+@property (nonatomic, strong, readonly) FGMapView *mapView;
 
-@property (nonatomic, strong) FGReuseItemPool *pool;
+- (instancetype) initWithMapView:(MKMapView *) mapView;
 
 - (void) beginMapView;
 
 @end
 
-@interface FGMapViewHolderView : UIView
-
-@property (nonatomic, strong) FGMapViewContext *guiContext;
+@interface FGMapView()<MKMapViewDelegate>
 
 @property (nonatomic, strong) MKMapView *mapView;
+
+@property (nonatomic, strong) FGReuseItemPool *pool;
 
 @end
 
@@ -84,22 +86,23 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 
 + (MKCoordinateRegion)beginMapViewWithReuseId:(NSString *)reuseId region:(MKCoordinateRegion)region styleClass:(NSString *)styleClass
 {
-    FGMapViewHolderView *view = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        FGMapViewHolderView *view = (FGMapViewHolderView *) reuseView;
+    FGMapView *view = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
+        FGMapView *view = (FGMapView *) reuseView;
         if (view == nil) {
-            view = [[FGMapViewHolderView alloc] init];
+            view = [[FGMapView alloc] init];
             
             if (region.center.latitude == 0 && region.center.longitude == 0 && region.span.latitudeDelta == 0 && region.span.longitudeDelta == 0) {
-                view.mapView.showsUserLocation = YES;
+                view.showsUserLocation = YES;
             }else{
-                view.mapView.showsUserLocation = NO;
-                view.mapView.region = region;
+                view.showsUserLocation = NO;
+                view.region = region;
             }
         }
         return view;
     } resultBlock:^(id view){ return view; }];
-    [FastGui pushContext:view.guiContext];
-    [view.guiContext beginMapView];
+    FGMapViewContext *ctx = [[FGMapViewContext alloc] initWithMapView:view];
+    [ctx beginMapView];
+    [FastGui pushContext:ctx];
     return view.mapView.region;
 }
 
@@ -147,17 +150,29 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 
 @implementation FGMapViewContext
 
-- (void)beginMapView
+@synthesize mapView = _mapView;
+
+- (instancetype)initWithMapView:(FGMapView *)mapView
 {
-    [self.pool prepareUpdateItems];
+    self = [super init];
+    if (self) {
+        _mapView = mapView;
+    }
+    return self;
+}
+
+- (void) beginMapView
+{
+    [self.mapView.pool prepareUpdateItems];
 }
 
 - (void) endMapView
 {
-    [self.pool finishUpdateItems:nil needRemove:^(id item) {
+    [self.mapView.pool finishUpdateItems:nil needRemove:^(id item) {
         if ([item isKindOfClass:[OverlayWithRenderer class]]) {
             [self.mapView removeOverlay: ((OverlayWithRenderer*)item).overlay];
-        }else if([item isKindOfClass:[AnnotationWithView class]]){
+        }
+        else if([item isKindOfClass:[AnnotationWithView class]]){
             [self.mapView removeAnnotation:((AnnotationWithView*)item).annotation];
         }
     }];
@@ -199,14 +214,13 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
-    [[NSError customError:CustomErrorUnknown] println];
     return nil;
 }
 
 - (MKOverlayRenderer *) customOverlay:(id<MKOverlay>) overlay withReuseId:(NSString *)reuseId withRenderer: (MKOverlayRenderer *(^)(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer)) initBlock
 {
     BOOL isNew;
-    OverlayWithRenderer *ov = [self.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
+    OverlayWithRenderer *ov = [self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
         OverlayWithRenderer * ov = (OverlayWithRenderer *) reuseItem;
         if (ov == nil) {
             ov = [[OverlayWithRenderer alloc] initWithRenderer:initBlock(overlay, nil)];
@@ -245,7 +259,7 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 - (void) textPinWithReuseId: (NSString *) reuseId location: (CLLocationCoordinate2D) location calloutText: (NSString *)calloutText subtitle: (NSString *) subtitle withPinImage:(UIImage *)image
 {
     BOOL isNew = NO;
-    AnnotationWithView *item = (AnnotationWithView *)[self.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
+    AnnotationWithView *item = (AnnotationWithView *)[self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
         AnnotationWithView *item = (AnnotationWithView *)reuseItem;
         if (item == nil) {
             item = [[AnnotationWithView alloc] init];
@@ -273,50 +287,27 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
     }
 }
 
-- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
-{
-    for (id item in self.pool.items) {
-        if ([item isKindOfClass:[OverlayWithRenderer class]]) {
-            if (((OverlayWithRenderer*)item).overlay == overlay) {
-                return ((OverlayWithRenderer*)item).renderer;
-            }
-        }
-    }
-    return nil;
-}
-
-- (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation
-{
-    for (AnnotationWithView *item in self.pool.items) {
-        if ([item isKindOfClass:[AnnotationWithView class]] && item.annotation == annotation) {
-            return item.view;
-        }
-    }
-    return nil;
-}
-
-@end
-
-@implementation FGMapViewHolderView
-
-- (instancetype)init
-{
-    if (self = [super init]) {
-        self.mapView = [[MKMapView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width, self.frame.size.height)];
-        self.guiContext = [[FGMapViewContext alloc] init];
-        self.guiContext.mapView = self.mapView;
-        self.guiContext.pool = [[FGReuseItemPool alloc] init];
-        self.mapView.delegate = self.guiContext;
-        [self addSubview:self.mapView];
-    }
-    return self;
-}
-
-- (void) layoutSubviews
-{
-    [super layoutSubviews];
-    self.mapView.frame = CGRectMake(0, 0, self.frame.size.width, self.frame.size.height);
-}
+//- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
+//{
+//    for (id item in self.mapView.pool.items) {
+//        if ([item isKindOfClass:[OverlayWithRenderer class]]) {
+//            if (((OverlayWithRenderer*)item).overlay == overlay) {
+//                return ((OverlayWithRenderer*)item).renderer;
+//            }
+//        }
+//    }
+//    return nil;
+//}
+//
+//- (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation
+//{
+//    for (AnnotationWithView *item in self.pool.items) {
+//        if ([item isKindOfClass:[AnnotationWithView class]] && item.annotation == annotation) {
+//            return item.view;
+//        }
+//    }
+//    return nil;
+//}
 
 @end
 
@@ -347,27 +338,53 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 
 @end
 
-@implementation MKPolylineView(FastGui)
+@implementation FGMapView
 
-- (void) styleWithBorder:(UIColor *)color width:(CGFloat)borderWidth
+- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
 {
-    self.strokeColor = color;
-    self.lineWidth = borderWidth;
+    for (id item in self.pool.items) {
+        if ([item isKindOfClass:[OverlayWithRenderer class]]) {
+            if (((OverlayWithRenderer*)item).overlay == overlay) {
+                return ((OverlayWithRenderer*)item).renderer;
+            }
+        }
+    }
+    return nil;
 }
 
-- (void) styleWithBorderColor:(UIColor *)borderColor
+- (MKAnnotationView *)mapView:(MKMapView *)mapView viewForAnnotation:(id<MKAnnotation>)annotation
 {
-    self.strokeColor = borderColor;
-}
-
-- (void) styleWithBorderWidth:(CGFloat)borderWidth
-{
-    self.lineWidth = borderWidth;
-}
-
-- (void) styleWithColor:(UIColor *)color
-{
-    self.strokeColor = color;
+    for (AnnotationWithView *item in self.pool.items) {
+        if ([item isKindOfClass:[AnnotationWithView class]] && item.annotation == annotation) {
+            return item.view;
+        }
+    }
+    return nil;
 }
 
 @end
+
+//@implementation MKPolylineView(FastGui)
+//
+//- (void) styleWithBorder:(UIColor *)color width:(CGFloat)borderWidth
+//{
+//    self.strokeColor = color;
+//    self.lineWidth = borderWidth;
+//}
+//
+//- (void) styleWithBorderColor:(UIColor *)borderColor
+//{
+//    self.strokeColor = borderColor;
+//}
+//
+//- (void) styleWithBorderWidth:(CGFloat)borderWidth
+//{
+//    self.lineWidth = borderWidth;
+//}
+//
+//- (void) styleWithColor:(UIColor *)color
+//{
+//    self.strokeColor = color;
+//}
+//
+//@end
