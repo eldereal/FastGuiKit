@@ -49,8 +49,6 @@
 
 @interface FGMapView()<MKMapViewDelegate>
 
-@property (nonatomic, strong) MKMapView *mapView;
-
 @property (nonatomic, strong) FGReuseItemPool *pool;
 
 @end
@@ -58,8 +56,9 @@
 static void *EndMapViewMethodKey = &EndMapViewMethodKey;
 static void *MapViewSetRegionMethodKey = &MapViewSetRegionMethodKey;
 static NSString *MapViewSetRegionDataKey = @"MapViewSetRegionDataKey";
-static void *MapViewPolylineMethodKey = &MapViewPolylineMethodKey;
-static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
+static void* MapViewCustomOverlay = &MapViewCustomOverlay;
+static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
+
 @implementation FastGui (BMKMapView)
 
 + (MKCoordinateRegion)beginMapView
@@ -103,7 +102,7 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
     FGMapViewContext *ctx = [[FGMapViewContext alloc] initWithMapView:view];
     [ctx beginMapView];
     [FastGui pushContext:ctx];
-    return view.mapView.region;
+    return view.region;
 }
 
 + (void)mapViewSetRegion:(MKCoordinateRegion)region
@@ -116,29 +115,113 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 
 + (void)mapViewPolyline:(MKPolyline *)polyline
 {
-    NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    [self customData:MapViewPolylineMethodKey data:@{@"reuseId" : reuseId, @"polyline" : polyline}];
+    [self mapViewPolylineWithReuseId:[FGInternal callerPositionAsReuseId] polyline:polyline styleClass:nil];
 }
 
 + (void)mapViewPolyline:(MKPolyline *)polyline styleClass:(NSString *)styleClass
 {
-    NSString *reuseId = [FGInternal callerPositionAsReuseId];
-    [self customData:MapViewPolylineMethodKey data:@{@"reuseId" : reuseId, @"polyline" : polyline, @"styleClass" : styleClass}];
+    [self mapViewPolylineWithReuseId:[FGInternal callerPositionAsReuseId] polyline:polyline styleClass:nil];
+}
+
++ (void)mapViewPolylineWithReuseId:(NSString *) reuseId polyline:(MKPolyline *)polyline styleClass:(NSString *)styleClass
+{
+    [self mapViewCustomOverlayWithBlock:^id<MKOverlay>(id<MKOverlay> reuseOverlay) {
+        return polyline;
+    } withReuseId:reuseId withRenderer:^MKOverlayRenderer *(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer) {
+        MKPolylineRenderer *renderer = (MKPolylineRenderer*)reuseRenderer;
+        if (renderer == nil) {
+            renderer = [[MKPolylineRenderer alloc] initWithOverlay:overlay];
+        }
+        return renderer;
+    } resultBlock:nil];
+}
+
++ (void)mapViewTileOverlayWithUrlTemplate:(NSString *)template
+{
+    [self mapViewCustomOverlayWithBlock:^id<MKOverlay>(id<MKOverlay> reuseOverlay) {
+        MKTileOverlay * to = (MKTileOverlay *)reuseOverlay;
+        if (![to.URLTemplate isEqualToString:template]) {
+            to = [[MKTileOverlay alloc] initWithURLTemplate:template];
+        }
+        return to;
+    } withReuseId:[FGInternal callerPositionAsReuseId] withRenderer:^MKOverlayRenderer *(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer) {
+        MKTileOverlayRenderer *render = (MKTileOverlayRenderer *) reuseRenderer;
+        if (render.overlay != overlay) {
+            render = [[MKTileOverlayRenderer alloc] initWithOverlay:overlay];
+        }
+        return render;
+    } resultBlock:nil];
 }
 
 + (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle
 {
-    [self customData:MapTextCalloutPinMethodKey data:@{@"reuseId" : [FGInternal callerPositionAsReuseId], @"location" : [NSValue valueWithCGPoint:CGPointMake(location.longitude, location.latitude)], @"calloutText" : calloutText, @"subtitle" : subtitle == nil ? [NSNull null] : subtitle}];
+    [self mapViewTextCalloutPinWithReuseId:[FGInternal callerPositionAsReuseId] location:location calloutText:calloutText subtitle:subtitle withPinImage:nil];
 }
 
-+ (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle:(NSString *)subtitle withPinImageName:(NSString *)imageName
++ (void) mapViewTextCalloutPinWithReuseId: (NSString *) reuseId location: (CLLocationCoordinate2D) location calloutText: (NSString *)calloutText subtitle: (NSString *) subtitle withPinImage:(UIImage *)image
 {
-    [self customData:MapTextCalloutPinMethodKey data:@{@"reuseId" : [FGInternal callerPositionAsReuseId], @"location" : [NSValue valueWithCGPoint:CGPointMake(location.longitude, location.latitude)], @"calloutText" : calloutText, @"subtitle" : subtitle == nil ? [NSNull null] : subtitle, @"image" : [UIImage imageNamed:imageName]}];
+    
+    [self mapViewCustomAnnotationWithBlock:^id<MKAnnotation>(id<MKAnnotation> reuseAnnotation) {
+        MKPointAnnotation *anno = (MKPointAnnotation *) reuseAnnotation;
+        if (anno == nil) {
+            anno = [[MKPointAnnotation alloc] init];
+        }
+        anno.coordinate = location;
+        anno.title = calloutText;
+        anno.subtitle = subtitle;
+        return anno;
+    } withReuseId:[FGInternal callerPositionAsReuseId] withView:^MKAnnotationView *(id<MKAnnotation> annotation, MKAnnotationView *reuseView) {
+        if (reuseView.annotation != annotation || (image != nil && [reuseView isKindOfClass:[MKPinAnnotationView class]]) || (image == nil && ![reuseView isKindOfClass:[MKPinAnnotationView class]])) {
+            reuseView = [image == nil ? [MKPinAnnotationView alloc] : [MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:reuseId];
+        }
+        if (image != nil) {
+            reuseView.image = image;
+        }
+        reuseView.canShowCallout = calloutText != nil || subtitle != nil;
+        return reuseView;
+    } resultBlock:nil];
+//    [self mapviewc]
+//    AnnotationWithView *item = (AnnotationWithView *)[self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
+//        AnnotationWithView *item = (AnnotationWithView *)reuseItem;
+//        if (item == nil) {
+//            item = [[AnnotationWithView alloc] init];
+//            item.annotation = [[MKPointAnnotation alloc] init];
+//            if (image == nil) {
+//                item.view = [[MKPinAnnotationView alloc] initWithAnnotation:item.annotation reuseIdentifier:reuseId];
+//                ((MKPinAnnotationView *)item.view).animatesDrop = NO;
+//            }else{
+//                item.view = [[MKAnnotationView alloc] initWithAnnotation:item.annotation reuseIdentifier:reuseId];
+//                
+//            }
+//            item.view.canShowCallout = YES;
+//            
+//        }
+//        if (image != nil) {
+//            item.view.image = image;
+//        }
+//        ((MKPointAnnotation *)item.annotation).title = calloutText;
+//        ((MKPointAnnotation *)item.annotation).subtitle = subtitle;
+//        ((MKPointAnnotation *)item.annotation).coordinate = location;
+//        return item;
+//    } outputIsNewView:&isNew];
+//    if (isNew) {
+//        [self.mapView addAnnotation:item.annotation];
+//    }
 }
 
-+ (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle:(NSString *)subtitle withPinImage:(UIImage *)image;
+
+
++ (id)mapViewCustomOverlayWithBlock:(id<MKOverlay> (^)(id<MKOverlay>))initOverlay withReuseId:(NSString *)reuseId withRenderer:(MKOverlayRenderer *(^)(id<MKOverlay>, MKOverlayRenderer *))initRender resultBlock:(id (^)(id<MKOverlay>, MKOverlayRenderer *))resultBlock
 {
-    [self customData:MapTextCalloutPinMethodKey data:@{@"reuseId" : [FGInternal callerPositionAsReuseId], @"location" : [NSValue valueWithCGPoint:CGPointMake(location.longitude, location.latitude)], @"calloutText" : calloutText, @"subtitle" : subtitle == nil ? [NSNull null] : subtitle, @"image" : image}];
+    id resultBlockOrNull = resultBlock == nil ? [NSNull null] : (id) resultBlock;
+    return [self customData:MapViewCustomOverlay data:@{@"reuseId": reuseId, @"initOverlay": initOverlay, @"initRender": initRender, @"resultBlock": resultBlockOrNull}];
+}
+
++ (id) mapViewCustomAnnotationWithBlock: (id<MKAnnotation>(^)(id<MKAnnotation> reuseAnnotation))initAnnotation withReuseId:(NSString *)reuseId withView: (MKAnnotationView *(^)(id<MKAnnotation> annotation, MKAnnotationView *reuseView)) initView resultBlock: (id(^)(id<MKAnnotation> annotation, MKAnnotationView * view)) resultBlock
+{
+    id resultBlockOrNull = resultBlock == nil ? [NSNull null] : (id) resultBlock;
+    return [self customData:MapViewCustomAnnotation data:@{@"reuseId": reuseId, @"initAnnotation": initAnnotation, @"initView": initView, @"resultBlock": resultBlockOrNull}];
+
 }
 
 + (void)endMapView
@@ -198,16 +281,20 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
         MKCoordinateRegion r = MKCoordinateRegionMake(CLLocationCoordinate2DMake(rect.origin.y, rect.origin.x), MKCoordinateSpanMake(rect.size.height, rect.size.width));
         [self setRegion:r];
         return nil;
-    }else if(key == MapViewPolylineMethodKey){
-        [self polylineWithReuseId:data[@"reuseId"] polyline:data[@"polyline"] styleClass:data[@"styleClass"]];
-        return nil;
-    }else if(key == MapTextCalloutPinMethodKey){
-        id subtitle = data[@"subtitle"];
-        if (subtitle == [NSNull null]) {
-            subtitle = nil;
+    }else if(key == MapViewCustomAnnotation){
+        id resultOrNull = data[@"resultBlock"];
+        if (resultOrNull == [NSNull null]) {
+            resultOrNull = nil;
         }
-        [self textPinWithReuseId:data[@"reuseId"] location:CLLocationCoordinate2DMake([(NSValue *)data[@"location"] CGPointValue].y, [(NSValue *)data[@"location"] CGPointValue].x) calloutText:data[@"calloutText"] subtitle:subtitle withPinImage:data[@"image"]];
+        return [self customAnnotationWithBlock:data[@"initAnnotation"] withReuseId:data[@"reuseId"] withView:data[@"initView"] resultBlock:resultOrNull];
+    }else if(key == MapViewCustomOverlay){
+        id resultOrNull = data[@"resultBlock"];
+        if (resultOrNull == [NSNull null]) {
+            resultOrNull = nil;
+        }
+        return [self customOverlayWithBlock:data[@"initOverlay"] withReuseId:data[@"reuseId"] withRenderer:data[@"initRender"] resultBlock:resultOrNull];
     }
+        
     
     return [self.parentContext customData:key data:data];
 }
@@ -217,17 +304,19 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
     return nil;
 }
 
-- (MKOverlayRenderer *) customOverlay:(id<MKOverlay>) overlay withReuseId:(NSString *)reuseId withRenderer: (MKOverlayRenderer *(^)(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer)) initBlock
+- (id) customOverlayWithBlock:(id<MKOverlay>(^)(id<MKOverlay> reuseOverlay)) initOverlay withReuseId:(NSString *)reuseId withRenderer: (MKOverlayRenderer *(^)(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer)) initRender resultBlock:(id (^)(id<MKOverlay>, MKOverlayRenderer *))resultBlock
 {
     BOOL isNew;
     OverlayWithRenderer *ov = [self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
         OverlayWithRenderer * ov = (OverlayWithRenderer *) reuseItem;
         if (ov == nil) {
-            ov = [[OverlayWithRenderer alloc] initWithRenderer:initBlock(overlay, nil)];
+            id<MKOverlay> overlay = initOverlay(nil);
+            ov = [[OverlayWithRenderer alloc] initWithRenderer:initRender(overlay, nil)];
             ov.overlay = overlay;
         }else{
-            MKOverlayRenderer *r = initBlock(ov.overlay, ov.renderer);
-            if (r != ov.renderer) {
+            id<MKOverlay> overlay = initOverlay(ov.overlay);
+            MKOverlayRenderer *r = initRender(overlay, ov.renderer);
+            if (r != ov.renderer || overlay != ov.overlay) {
                 ov = [[OverlayWithRenderer alloc] initWithRenderer:r];
                 ov.overlay = overlay;
             }
@@ -235,57 +324,47 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
         return ov;
     } outputIsNewView: &isNew];
     if (isNew) {
-        [self.mapView addOverlay:overlay];
+        [self.mapView addOverlay:ov.overlay];
     }
-    return ov.renderer;
+    if (resultBlock != nil) {
+        return resultBlock(ov.overlay, ov.renderer);
+    }else{
+        return nil;
+    }
 }
 
-- (MKAnnotationView *) customAnnotation: (id<MKAnnotation>)annotation withReuseId:(NSString *)reuseId withView: (MKAnnotationView *(^)(MKAnnotationView *reuseView)) initBlock
+- (id) customAnnotationWithBlock: (id<MKAnnotation>(^)(id<MKAnnotation> reuseAnnotation))initAnnotation withReuseId:(NSString *)reuseId withView: (MKAnnotationView *(^)(id<MKAnnotation> annotation, MKAnnotationView *reuseView)) initView resultBlock: (id(^)(id<MKAnnotation> annotation, MKAnnotationView * view)) resultBlock
 {
-    return nil;
-}
-
-- (void) polylineWithReuseId: (NSString *)reuseId polyline: (MKPolyline *) polyline styleClass: (NSString *) styleClass
-{
-    [self customOverlay:polyline withReuseId:reuseId withRenderer:^MKOverlayRenderer *(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer) {
-        MKPolylineRenderer *renderer = (MKPolylineRenderer*)reuseRenderer;
-        if (renderer == nil) {
-            renderer = [[MKPolylineRenderer alloc] initWithOverlay:overlay];
-        }
-        return renderer;
-    }];
-}
-
-- (void) textPinWithReuseId: (NSString *) reuseId location: (CLLocationCoordinate2D) location calloutText: (NSString *)calloutText subtitle: (NSString *) subtitle withPinImage:(UIImage *)image
-{
-    BOOL isNew = NO;
-    AnnotationWithView *item = (AnnotationWithView *)[self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
-        AnnotationWithView *item = (AnnotationWithView *)reuseItem;
-        if (item == nil) {
-            item = [[AnnotationWithView alloc] init];
-            item.annotation = [[MKPointAnnotation alloc] init];
-            if (image == nil) {
-                item.view = [[MKPinAnnotationView alloc] initWithAnnotation:item.annotation reuseIdentifier:reuseId];
-                ((MKPinAnnotationView *)item.view).animatesDrop = NO;
-            }else{
-                item.view = [[MKAnnotationView alloc] initWithAnnotation:item.annotation reuseIdentifier:reuseId];
-                
+    BOOL isNew;
+    AnnotationWithView *av = [self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
+        AnnotationWithView * av = (AnnotationWithView *) reuseItem;
+        if (av == nil) {
+            id<MKAnnotation> annotation = initAnnotation(nil);
+            MKAnnotationView *view = initView(annotation, nil);
+            av = [[AnnotationWithView alloc] init];
+            av.annotation = annotation;
+            av.view = view;
+        }else{
+            id<MKAnnotation> annotation = initAnnotation(av.annotation);
+            MKAnnotationView *view = initView(annotation, av.view);
+            if (view != av.view || annotation != av.annotation) {
+                av = [[AnnotationWithView alloc] init];
+                av.annotation = annotation;
+                av.view = view;
             }
-            item.view.canShowCallout = YES;
-            
         }
-        if (image != nil) {
-            item.view.image = image;
-        }
-        ((MKPointAnnotation *)item.annotation).title = calloutText;
-        ((MKPointAnnotation *)item.annotation).subtitle = subtitle;
-        ((MKPointAnnotation *)item.annotation).coordinate = location;
-        return item;
-    } outputIsNewView:&isNew];
+        return av;
+    } outputIsNewView: &isNew];
     if (isNew) {
-        [self.mapView addAnnotation:item.annotation];
+        [self.mapView addAnnotation:av.annotation];
+    }
+    if (resultBlock != nil) {
+        return resultBlock(av.annotation, av.view);
+    }else{
+        return nil;
     }
 }
+
 
 //- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
 //{
@@ -339,6 +418,16 @@ static void *MapTextCalloutPinMethodKey = &MapTextCalloutPinMethodKey;
 @end
 
 @implementation FGMapView
+
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        self.pool = [[FGReuseItemPool alloc] init];
+        self.delegate = self;
+    }
+    return self;
+}
 
 - (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
 {

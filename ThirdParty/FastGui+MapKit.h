@@ -29,9 +29,9 @@
 
 + (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle;
 
-+ (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle:(NSString *)subtitle withPinImageName:(NSString *)imageName;
++ (void)mapViewTileOverlayWithUrlTemplate: (NSString *) template;
 
-+ (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle:(NSString *)subtitle withPinImage:(UIImage *)image;
++ (id) mapViewCustomOverlayWithBlock:(id<MKOverlay>(^)(id<MKOverlay> reuseOverlay)) initOverlay withReuseId:(NSString *)reuseId withRenderer: (MKOverlayRenderer *(^)(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer)) initRender resultBlock: (id(^)(id<MKOverlay> overlay, MKOverlayRenderer* renderer)) resultBlock;
 
 + (void)endMapView;
 
