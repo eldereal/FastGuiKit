@@ -7,67 +7,48 @@
 //
 
 #import "FGPushStyleSheetContext.h"
+#import "FGNullViewContext.h"
 #import <REKit/REKit.h>
 
-@interface FGPushStyleSheetContext : NSObject<FGContext>
+@interface FGPushStyleSheetContext : FGNullViewContext
 
-@property (nonatomic, strong) NSArray * styleSheets;
+@property (nonatomic, strong) id<FGStyleSheet> customStyleSheet;
+
+@property (nonatomic) BOOL isolated;
 
 @end
-
-static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
 
 @implementation FastGui(FGPushStyleSheetContext)
 
 + (void)beginUseStyleSheet:(id<FGStyleSheet>)styleSheet
 {
-    [self beginUseStyleSheets:@[styleSheet]];
+    [self beginUseStyleSheet:styleSheet isolated:NO];
 }
 
-+ (void)beginUseStyleSheets:(NSArray *)styleSheets
++ (void)beginUseStyleSheet:(id<FGStyleSheet>)styleSheet isolated:(BOOL)isolated
 {
     FGPushStyleSheetContext *ctx = [[FGPushStyleSheetContext alloc] init];
-    ctx.styleSheets = styleSheets;
+    ctx.customStyleSheet = styleSheet;
+    ctx.isolated = isolated;
     [FastGui pushContext: ctx];
 }
 
 + (void)beginUseStyleSheetWithBlock:(FGVoidBlock)styleSheetBlock
 {
+    [self beginUseStyleSheetWithBlock:styleSheetBlock isolated:NO];
+}
+
++ (void)beginUseStyleSheetWithBlock:(FGVoidBlock)styleSheetBlock isolated:(BOOL)isolated
+{
     id styleSheet = [[NSObject alloc] init];
     [styleSheet respondsToSelector:@selector(styleSheet) withKey:nil usingBlock:styleSheetBlock];
-    [self beginUseStyleSheet:styleSheet];
+    [self beginUseStyleSheet:styleSheet isolated:isolated];
 }
 
 + (void)endUseStyleSheet
 {
-    [self endUseStyleSheets];
+    [self popContext];
 }
-
-+ (void)endUseStyleSheets
-{
-    [self customData:EndUseStyleSheetsMethodKey data:nil];
-}
-
-//+ (void)useStyleSheet:(id<FGStyleSheet>)styleSheet withBlock:(FGVoidBlock)block
-//{
-//    [self beginUseStyleSheet:styleSheet];
-//    block();
-//    [self endUseStyleSheet];
-//}
-//
-//+ (void)useStyleSheets:(NSArray *)styleSheets withBlock:(FGVoidBlock)block
-//{
-//    [self beginUseStyleSheets:styleSheets];
-//    block();
-//    [self endUseStyleSheets];
-//}
-//
-//+ (void)useStyleSheetWithBlock:(FGVoidBlock)styleSheet withBlock:(FGVoidBlock)block
-//{
-//    [self beginUseStyleSheetWithBlock:styleSheet];
-//    block();
-//    [self endUseStyleSheet];
-//}
 
 @end
 
@@ -75,42 +56,12 @@ static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
 
 @synthesize parentContext;
 
-- (void)reloadGui
-{
-    [parentContext reloadGui];
-}
-
 - (void)styleSheet
 {
-    [parentContext styleSheet];
-    for (id<FGStyleSheet> stylesheet in self.styleSheets) {
-        [stylesheet styleSheet];
+    if (!self.isolated) {
+        [parentContext styleSheet];
     }
-}
-
-- (id)customData:(void *)key data:(NSDictionary *)data
-{
-    if (key == EndUseStyleSheetsMethodKey) {
-        [FastGui popContext];
-        return nil;
-    }else{
-        return [parentContext customData:key data:data];
-    }
-}
-
-- (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
-{
-    return [parentContext customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:applyStyleBlock];
-}
-
-- (void)customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
-{
-    [parentContext customViewControllerWithReuseId:reuseId initBlock:initBlock];
-}
-
-- (void)dismissViewController
-{
-    [parentContext dismissViewController];
+    [self.customStyleSheet styleSheet];
 }
 
 @end

@@ -18,6 +18,8 @@
 #import "FGViewGroup.h"
 #import "UIView+changingResult.h"
 
+const MKCoordinateRegion MKCoordinateRegionZero = {{0,0},{0,0}};
+
 @interface FakeViewForStylable : UIView<FGStylable>
 
 @property (nonatomic, strong, readonly) id<FGStylable> target;
@@ -30,9 +32,7 @@
 
 @property (nonatomic, strong) id<MKOverlay> overlay;
 
-@property (nonatomic, strong, readonly) MKOverlayRenderer * renderer;
-
-- (instancetype) initWithRenderer: (MKOverlayRenderer *)renderer;
+@property (nonatomic, strong) MKOverlayRenderer * renderer;
 
 @end
 
@@ -45,6 +45,12 @@
 @end
 
 @interface FGMapView : MKMapView
+
+@property (nonatomic) MKMapRect limitRegion;
+@property (nonatomic) double limitRegionMaxZoom;
+@property (nonatomic) double limitRegionMinZoom;
+@property (nonatomic) BOOL manuallyChangingMapRect;
+@property (nonatomic) MKMapRect lastGoodMapRect;
 
 @end
 
@@ -74,7 +80,7 @@ static NSString *MapViewSetRegionDataKey = @"MapViewSetRegionDataKey";
 static void* MapViewCustomOverlay = &MapViewCustomOverlay;
 static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 
-@implementation FastGui (BMKMapView)
+@implementation FastGui (MapKit)
 
 + (MKCoordinateRegion)beginMapView
 {
@@ -144,7 +150,7 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         return polyline;
     } withReuseId:reuseId withRenderer:^MKOverlayRenderer *(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer) {
         MKPolylineRenderer *renderer = (MKPolylineRenderer*)reuseRenderer;
-        if (renderer == nil) {
+        if (renderer.polyline != overlay) {
             renderer = [[MKPolylineRenderer alloc] initWithPolyline:(MKPolyline *)overlay];
         }
         return renderer;
@@ -347,20 +353,29 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         OverlayWithRenderer * ov = (OverlayWithRenderer *) reuseItem;
         if (ov == nil) {
             id<MKOverlay> overlay = initOverlay(nil);
-            ov = [[OverlayWithRenderer alloc] initWithRenderer:initRender(overlay, nil)];
+            MKOverlayRenderer * renderer = initRender(overlay, nil);
+            ov = [[OverlayWithRenderer alloc] init];
             ov.overlay = overlay;
+            ov.renderer = renderer;
         }else{
             id<MKOverlay> overlay = initOverlay(ov.overlay);
             MKOverlayRenderer *r = initRender(overlay, ov.renderer);
-            if (r != ov.renderer || overlay != ov.overlay) {
-                ov = [[OverlayWithRenderer alloc] initWithRenderer:r];
+            if (overlay != ov.overlay) {
+                ov = [[OverlayWithRenderer alloc] init];
                 ov.overlay = overlay;
             }
+            ov.renderer = r;
         }
         return ov;
     } outputIsNewView: &isNew];
     if (isNew) {
         [self.mapView addOverlay:ov.overlay];
+    }else{
+        NSUInteger index = [self.mapView.overlays indexOfObject:ov.overlay];
+        while (index != self.mapView.overlays.count - 1) {
+            [self.mapView exchangeOverlayAtIndex:index withOverlayAtIndex:index+1];
+            index ++;
+        }
     }
     if (resultBlock != nil) {
         return resultBlock(ov.overlay, ov.renderer);
@@ -383,16 +398,18 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         }else{
             id<MKAnnotation> annotation = initAnnotation(av.annotation);
             MKAnnotationView *view = initView(annotation, av.view);
-            if (view != av.view || annotation != av.annotation) {
+            if (annotation != av.annotation) {
                 av = [[AnnotationWithView alloc] init];
                 av.annotation = annotation;
-                av.view = view;
             }
+            av.view = view;
         }
         return av;
     } outputIsNewView: &isNew];
     if (isNew) {
         [self.mapView addAnnotation:av.annotation];
+    }else{
+        [self.mapView bringSubviewToFront:av.view];
     }
     if (resultBlock != nil) {
         return resultBlock(av.annotation, av.view);
@@ -430,17 +447,6 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 
 @synthesize reuseId;
 
-@synthesize renderer = _renderer;
-
-- (instancetype)initWithRenderer:(MKOverlayRenderer *)renderer
-{
-    self = [self init];
-    if (self) {
-        _renderer = renderer;
-    }
-    return self;
-}
-
 @end
 
 @implementation AnnotationWithView
@@ -461,6 +467,9 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
     if (self) {
         self.pool = [[FGReuseItemPool alloc] init];
         self.delegate = self;
+        self.limitRegion = MKMapRectNull;
+        self.limitRegionMaxZoom = 1;
+        self.limitRegionMinZoom = 1;
     }
     return self;
 }
@@ -490,6 +499,150 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 -(void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
 {
     [view reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
+}
+
+//-(void)mapView:(MKMapView *)mapView regionWillChangeAnimated:(BOOL)animated
+//{
+//    if (MKCoordinateRegionEquals(self.limitRegion, MKCoordinateRegionZero)) {
+//        return;
+//    }
+//    MKCoordinateRegion region = self.region;
+//    if (isnan(region.center.latitude) && isnan(region.center.longitude) && !region.span.latitudeDelta > 0 && !region.span.longitudeDelta > 0) {
+//        return;
+//    }
+//    MKCoordinateRegion desireRegion = region;
+//    double aspectRatio = region.span.longitudeDelta / region.span.latitudeDelta;
+//    double zoomX = self.limitRegion.span.longitudeDelta / region.span.longitudeDelta;
+//    double zoomY = self.limitRegion.span.latitudeDelta / region.span.latitudeDelta;
+//    double zoom = MAX(zoomX, zoomY);
+//    double desireZoom = zoom;
+//    if (desireZoom < self.limitRegionMinZoom) {
+//        desireZoom = self.limitRegionMinZoom;
+//    }else if (desireZoom > self.limitRegionMaxZoom) {
+//        desireZoom = self.limitRegionMaxZoom;
+//    }
+//    desireRegion.span.longitudeDelta *= zoom / desireZoom;
+//    desireRegion.span.latitudeDelta *= zoom / desireZoom;
+//    
+//    NSLog(@"%f, %f", zoom, desireZoom);
+//    
+//    if (!MKCoordinateRegionEquals(region, desireRegion)) {
+//        [self setRegion:desireRegion animated:NO];
+//    }
+//}
+
+- (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated
+{
+    if (MKMapRectIsNull(self.limitRegion) || MKMapRectIsEmpty(self.limitRegion)) {
+        return;
+    }
+    if (MKMapRectIsNull(self.visibleMapRect) || MKMapRectIsEmpty(self.visibleMapRect)) {
+        return;
+    }
+    // prevents possible infinite recursion when we call setVisibleMapRect below
+    if (self.manuallyChangingMapRect) {
+        return;
+    }
+    
+    MKMapRect desireRegion = mapView.visibleMapRect;
+    
+    double widthZoom = self.limitRegion.size.width / mapView.visibleMapRect.size.width;
+    double heightZoom = self.limitRegion.size.height / mapView.visibleMapRect.size.height;
+    // adjust ratios as needed
+    double zoom = MAX(widthZoom, heightZoom);
+    
+    double desireZoom = zoom;
+    BOOL anyChange = false;
+    if (desireZoom < self.limitRegionMinZoom) {
+        desireZoom = self.limitRegionMinZoom;
+        anyChange = true;
+    }else if (desireZoom > self.limitRegionMaxZoom) {
+        desireZoom = self.limitRegionMaxZoom;
+        anyChange = true;
+    }
+    double widthDelta = desireRegion.size.width * ((zoom / desireZoom) - 1);
+    double heightDelta = desireRegion.size.height * ((zoom / desireZoom) - 1);
+    desireRegion.size.width *= zoom / desireZoom;
+    desireRegion.size.height *= zoom / desireZoom;
+    desireRegion.origin.x -= widthDelta / 2;
+    desireRegion.origin.y -= heightDelta / 2;
+    
+    if (widthZoom > 1) {
+        if (desireRegion.origin.x < self.limitRegion.origin.x) {
+            desireRegion.origin.x = self.limitRegion.origin.x;
+            anyChange = true;
+        }else if(desireRegion.origin.x + desireRegion.size.width > self.limitRegion.origin.x + self.limitRegion.size.width){
+            desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width - desireRegion.size.width;
+            anyChange = true;
+        }
+    }else{
+        if (desireRegion.origin.x > self.limitRegion.origin.x) {
+            desireRegion.origin.x = self.limitRegion.origin.x;
+        }else if(desireRegion.origin.x + desireRegion.size.width < self.limitRegion.origin.x + self.limitRegion.size.width){
+            desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width - desireRegion.size.width;
+        }
+    }
+    
+    if (heightZoom > 1) {
+        if (desireRegion.origin.y < self.limitRegion.origin.y) {
+            desireRegion.origin.y = self.limitRegion.origin.y;
+            anyChange = true;
+        }else if(desireRegion.origin.y + desireRegion.size.height > self.limitRegion.origin.y + self.limitRegion.size.height){
+            desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height - desireRegion.size.height;
+            anyChange = true;
+        }
+    }else{
+        if (desireRegion.origin.y > self.limitRegion.origin.y) {
+            desireRegion.origin.y = self.limitRegion.origin.y;
+            anyChange = true;
+        }else if(desireRegion.origin.y + desireRegion.size.height < self.limitRegion.origin.y + self.limitRegion.size.height){
+            desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height - desireRegion.size.height;
+            anyChange = true;
+        }
+    }
+    
+    
+    if (anyChange) {
+        
+        [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.manuallyChangingMapRect = YES;
+            [mapView setVisibleMapRect:desireRegion animated:YES];
+                    self.manuallyChangingMapRect = NO;
+        } completion:nil];
+
+    }
+    
+    
+//    BOOL mapContainsOverlay = MKMapRectContainsRect(mapView.visibleMapRect, self.limitRegion);
+//    
+//    
+//    if (mapContainsOverlay) {
+//        // The overlay is entirely inside the map view but adjust if user is zoomed out too much...
+//        double widthZoom = self.limitRegion.size.width / mapView.visibleMapRect.size.width;
+//        double heightZoom = self.limitRegion.size.height / mapView.visibleMapRect.size.height;
+//        // adjust ratios as needed
+//        double zoom = MAX(widthZoom, heightZoom);
+//        if (zoom < self.limitRegionMinZoom) {
+//            self.manuallyChangingMapRect = YES;
+//            [mapView setVisibleMapRect:self.limitRegion animated:YES];
+//            self.manuallyChangingMapRect = NO;
+//        }
+//    } else if (!MKMapRectIntersectsRect(mapView.visibleMapRect, self.limitRegion)) {
+//        // Overlay is no longer visible in the map view.
+//        // Reset to last "good" map rect...
+//        self.manuallyChangingMapRect = YES;
+//        [mapView setVisibleMapRect:self.lastGoodMapRect animated:YES];
+//        self.manuallyChangingMapRect = NO;
+//    } else {
+//        self.lastGoodMapRect = mapView.visibleMapRect;
+//    }
+}
+
+- (void)endUpdateStyle
+{
+    self.manuallyChangingMapRect = YES;
+    [super endUpdateStyle];
+    self.manuallyChangingMapRect = NO;
 }
 
 @end
@@ -550,6 +703,28 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 - (void) styleWithColor:(UIColor *)color
 {
     self.strokeColor = color;
+}
+
+@end
+
+@implementation FGStyle (MapKit)
+
++ (void)mapViewLimitRegion:(MKCoordinateRegion)region minZoom:(double)minZoom maxZoom:(double)maxZoom
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[FGMapView class]]) {
+            FGMapView * map = (FGMapView *) view;
+            MKMapPoint a = MKMapPointForCoordinate(CLLocationCoordinate2DMake(
+                                                                              region.center.latitude + region.span.latitudeDelta / 2,
+                                                                              region.center.longitude - region.span.longitudeDelta / 2));
+            MKMapPoint b = MKMapPointForCoordinate(CLLocationCoordinate2DMake(
+                                                                              region.center.latitude - region.span.latitudeDelta / 2,
+                                                                              region.center.longitude + region.span.longitudeDelta / 2));
+            map.limitRegion =  MKMapRectMake(MIN(a.x,b.x), MIN(a.y,b.y), ABS(a.x-b.x), ABS(a.y-b.y));
+            map.limitRegionMaxZoom = maxZoom;
+            map.limitRegionMinZoom = minZoom;
+        }
+    }];
 }
 
 @end

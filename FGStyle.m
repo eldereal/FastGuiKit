@@ -36,7 +36,8 @@ static UIView *_view;
             if ([_view respondsToSelector: @selector(endUpdateStyle)]) {
                 [_view performSelector: @selector(endUpdateStyle)];
             }
-        }@finally{
+        }
+        @finally{
             _view = nil;
         }
     }

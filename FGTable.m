@@ -817,7 +817,7 @@ static void * IsHeaderPropertyKey = &IsHeaderPropertyKey;
 
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
-    UIView *view = [parentContext customViewWithReuseId:reuseId initBlock:initBlock resultBlock:^id(UIView *view) {
+    UIView *view = [self.parentContext customViewWithReuseId:reuseId initBlock:initBlock resultBlock:^id(UIView *view) {
         return view;
     } applyStyleBlock:applyStyleBlock];
     if (![view isKindOfClass:[UITableView class]]) {

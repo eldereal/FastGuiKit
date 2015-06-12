@@ -9,9 +9,11 @@
 #import "FastGui.h"
 #import <MapKit/MapKit.h>
 
-#define MKCoordinateRegionZero {{0, 0}, {0, 0}}
+#define MKCoordinateRegionEquals(a,b) ((a).center.latitude == (b).center.latitude && a.center.longitude == (b).center.longitude && (a).span.latitudeDelta == (b).span.latitudeDelta && a.span.longitudeDelta == (b).span.longitudeDelta)
 
-@interface FastGui (BMKMapView)
+extern const MKCoordinateRegion MKCoordinateRegionZero;
+
+@interface FastGui (MapKit)
 
 + (MKCoordinateRegion)beginMapView;
 
@@ -37,7 +39,15 @@
 
 + (id) mapViewCustomOverlayWithBlock:(id<MKOverlay>(^)(id<MKOverlay> reuseOverlay)) initOverlay withReuseId:(NSString *)reuseId withRenderer: (MKOverlayRenderer *(^)(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer)) initRender resultBlock: (id(^)(id<MKOverlay> overlay, MKOverlayRenderer* renderer)) resultBlock;
 
++ (id) mapViewCustomAnnotationWithBlock: (id<MKAnnotation>(^)(id<MKAnnotation> reuseAnnotation))initAnnotation withReuseId:(NSString *)reuseId withView: (MKAnnotationView *(^)(id<MKAnnotation> annotation, MKAnnotationView *reuseView)) initView resultBlock: (id(^)(id<MKAnnotation> annotation, MKAnnotationView * view)) resultBlock;
+
 + (void)endMapView;
+
+@end
+
+@interface FGStyle (MapKit)
+
++ (void) mapViewLimitRegion: (MKCoordinateRegion) region minZoom: (double) minZoom maxZoom: (double) maxZoom;
 
 @end
 

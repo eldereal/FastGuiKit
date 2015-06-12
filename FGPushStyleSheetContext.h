@@ -13,19 +13,13 @@
 
 + (void) beginUseStyleSheet:(id<FGStyleSheet>) styleSheet;
 
++ (void) beginUseStyleSheet:(id<FGStyleSheet>) styleSheet isolated: (BOOL) isolated;
+
 + (void) beginUseStyleSheetWithBlock:(FGVoidBlock) styleSheet;
 
-+ (void) beginUseStyleSheets:(NSArray *) styleSheets;
++ (void) beginUseStyleSheetWithBlock:(FGVoidBlock) styleSheet isolated: (BOOL) isolated;
 
 + (void) endUseStyleSheet;
-
-+ (void) endUseStyleSheets;
-
-//+ (void) useStyleSheet: (id<FGStyleSheet>) styleSheet withBlock: (FGVoidBlock) block;
-//
-//+ (void) useStyleSheetWithBlock:(FGVoidBlock) styleSheet withBlock: (FGVoidBlock) block;
-//
-//+ (void) useStyleSheets:(NSArray *) styleSheets withBlock: (FGVoidBlock) block;
 
 @end
 

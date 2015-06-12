@@ -14,32 +14,32 @@
 
 - (void)reloadGui
 {
-    [parentContext reloadGui];
+    [self.parentContext reloadGui];
 }
 
 - (void)styleSheet
 {
-    [parentContext styleSheet];
+    [self.parentContext styleSheet];
 }
 
 - (id)customData:(void *)key data:(NSDictionary *)data
 {
-    return [parentContext customData:key data:data];
+    return [self.parentContext customData:key data:data];
 }
 
 - (void)customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
 {
-    [parentContext customViewControllerWithReuseId:reuseId initBlock:initBlock];
+    [self.parentContext customViewControllerWithReuseId:reuseId initBlock:initBlock];
 }
 
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
-    return [parentContext customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:applyStyleBlock];
+    return [self.parentContext customViewWithReuseId:reuseId initBlock:initBlock resultBlock:resultBlock applyStyleBlock:applyStyleBlock];
 }
 
 - (void)dismissViewController
 {
-    [parentContext dismissViewController];
+    [self.parentContext dismissViewController];
 }
 
 @end
