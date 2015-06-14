@@ -22,6 +22,8 @@
 
 - (NSLayoutConstraint *) updateConstraint: (NSLayoutConstraint *)constraint view1: (id)view1 attribute:(NSLayoutAttribute)attr1 relatedBy:(NSLayoutRelation)relation toItem:(id)view2 attribute:(NSLayoutAttribute)attr2 multiplier:(CGFloat)multiplier constant:(CGFloat)c;
 
+- (NSLayoutConstraint *) updateConstraint: (NSLayoutConstraint *)constraint view1: (id)view1 attribute:(NSLayoutAttribute)attr1 relatedBy:(NSLayoutRelation)relation toItem:(id)view2 attribute:(NSLayoutAttribute)attr2 multiplier:(CGFloat)multiplier constant:(CGFloat)c priority: (UILayoutPriority) priority;
+
 - (void) sizeStyleUseAutoLayout;
 
 - (void) sizeStyleSetFrame;

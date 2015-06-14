@@ -18,8 +18,6 @@
 
 - (void) beginCarousel;
 
-- (NSInteger) carouselSelectedIndex;
-
 - (void) endCarousel;
 
 @property (nonatomic, strong) FGReuseItemPool *pool;
@@ -29,6 +27,8 @@
 @property (nonatomic, assign) CGFloat autopaging;
 
 @property (nonatomic, assign) BOOL dispatchingNextPage;
+
+@property (nonatomic, assign) BOOL updateWhenChangeCurrentPage;
 
 @end
 
@@ -66,7 +66,17 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
 
 + (NSInteger) carouselSelectedIndex
 {
-    NSNumber *num = [self customData: CarouselSelectedIndexMethodKey data:nil];
+    NSNumber *num = [self customData: CarouselSelectedIndexMethodKey data:@{}];
+    if (num == nil) {
+        return -1;
+    }else{
+        return [num integerValue];
+    }
+}
+
++ (NSInteger)carouselSelectedIndexUpdate
+{
+    NSNumber *num = [self customData: CarouselSelectedIndexMethodKey data:@{@"update":[NSNumber numberWithBool:YES]}];
     if (num == nil) {
         return -1;
     }else{
@@ -141,7 +151,10 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
 - (id) customData:(void *)key data:(NSDictionary *)data
 {
     if (key == CarouselSelectedIndexMethodKey) {
-        return [NSNumber numberWithInteger: [self carouselSelectedIndex]];
+        if ([(NSNumber *)data[@"update"] boolValue]) {
+            self.updateWhenChangeCurrentPage = YES;
+        }
+        return [NSNumber numberWithInteger: [self currentItemIndex]];
     }else if(key == EndCarouselMethodKey){
         [self endCarousel];
     }else{
@@ -153,15 +166,11 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
 
 - (void) beginCarousel
 {
+    self.updateWhenChangeCurrentPage = NO;
     if (self.pool == nil) {
         self.pool = [[FGReuseItemPool alloc] init];
     }
     [self.pool prepareUpdateItems];
-}
-
-- (NSInteger) carouselSelectedIndex
-{
-    return -1;
 }
 
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
@@ -218,6 +227,13 @@ static void * EndCarouselMethodKey = &EndCarouselMethodKey;
         return self.isWrapEnabled ? 1:0;
     }else{
         return value;
+    }
+}
+
+- (void)carouselCurrentItemIndexDidChange:(iCarousel *)carousel
+{
+    if (self.updateWhenChangeCurrentPage) {
+        [FastGui reloadGui];
     }
 }
 

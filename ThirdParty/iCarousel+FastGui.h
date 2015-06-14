@@ -19,6 +19,8 @@
 
 + (NSInteger) carouselSelectedIndex;
 
++ (NSInteger) carouselSelectedIndexUpdate;
+
 + (void) endCarousel;
 
 @end

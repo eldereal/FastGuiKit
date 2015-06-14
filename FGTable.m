@@ -58,6 +58,10 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 
 @property (nonatomic, assign) BOOL headerAffixEnabled;
 
+@property (nonatomic, assign) BOOL notifyScrollToBottom;
+
+@property (nonatomic, assign) BOOL scrollToBottom;
+
 @end
 
 @interface UITableView(FGTable)
@@ -76,7 +80,13 @@ typedef NS_ENUM(NSUInteger, FGTableViewContextMode)
 
 @end
 
-@interface UITableViewCell(FGTable)<FGWithReuseId, FGTableItem>
+@protocol StyleWithHasSeparator<NSObject>
+
+- (void) tableCellHasSeparator:(BOOL)hasSeparator;
+
+@end
+
+@interface UITableViewCell(FGTable)<FGWithReuseId, FGTableItem, StyleWithHasSeparator>
 
 
 @end
@@ -112,6 +122,8 @@ static void * RefreshControlMethodKey = &RefreshControlMethodKey;
 static void * TableHeaderWithNextCustomViewMethodKey = &TableHeaderWithNextCustomViewMethodKey;
 
 static void * TableFooterWithNextCustomViewMethodKey = &TableFooterWithNextCustomViewMethodKey;
+
+static void * TableScrollToBottomMethodKey = &TableScrollToBottomMethodKey;
 
 @implementation FastGui (FGTable)
 
@@ -253,6 +265,11 @@ static NSString * tableRefreshControlReuseId;
     
 }
 
++ (BOOL) tableScrollToBottom
+{
+    return [(NSNumber *) [self customData:TableScrollToBottomMethodKey data:nil] boolValue];
+}
+
 + (void)tableHeaderWithNextCustomView
 {
     [self customData:TableHeaderWithNextCustomViewMethodKey data:nil];
@@ -262,6 +279,7 @@ static NSString * tableRefreshControlReuseId;
 {
     [self customData:TableFooterWithNextCustomViewMethodKey data:nil];
 }
+
 
 @end
 
@@ -521,6 +539,11 @@ static NSString * tableRefreshControlReuseId;
     {
         self.mode = FGTableViewContextModeFooter;
     }
+    else if(key == TableScrollToBottomMethodKey)
+    {
+        self.tableView.fg_tableData.notifyScrollToBottom = YES;
+        return [NSNumber numberWithBool:self.tableView.fg_tableData.scrollToBottom];
+    }
     else
     {
         return [parentContext customData:key data:data];
@@ -616,6 +639,15 @@ static void * CellHeightPropertyKey = &CellHeightPropertyKey;
     return cellHeight == nil ? 44 : [cellHeight floatValue];
 }
 
+- (void)tableCellHasSeparator:(BOOL)hasSeparator
+{
+    for (UIView *view in self.subviews) {
+        if(view.frame.size.height * [UIScreen mainScreen].scale == 1){
+            view.hidden = !hasSeparator;
+        }
+    }
+}
+
 @end
 
 @implementation FGTableData
@@ -690,6 +722,7 @@ static void * CellHeightPropertyKey = &CellHeightPropertyKey;
 - (void)scrollViewDidScroll:(UIScrollView *)scrollView
 {
     UITableView *tableView = (UITableView *) scrollView;
+    CGFloat scrollPos = tableView.contentOffset.y;
     if (self.headerAffixEnabled) {
         CGFloat scrollPos = tableView.contentOffset.y;
         FGTableHeaderWrapperView *wrapper = (FGTableHeaderWrapperView *) tableView.tableHeaderView;
@@ -713,6 +746,13 @@ static void * CellHeightPropertyKey = &CellHeightPropertyKey;
             self.refreshControl.bounds = CGRectMake(self.refreshControl.bounds.origin.x, 0, self.refreshControl.bounds.size.width, self.refreshControl.bounds.size.height);
         }
     }
+    CGFloat contentHeight = tableView.contentSize.height;
+    CGFloat bottomPos = scrollPos + tableView.frame.size.height;
+    BOOL scrollToBottom = bottomPos >= contentHeight;
+    if (!self.scrollToBottom && scrollToBottom && self.notifyScrollToBottom) {
+        [FastGui reloadGui];
+    }
+    self.scrollToBottom = scrollToBottom;
 }
 
 @end
@@ -868,6 +908,15 @@ static void * IsHeaderPropertyKey = &IsHeaderPropertyKey;
         }
     }];
     
+}
+
++ (void) tableCellHasSeparator:(BOOL)hasSeparator
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view respondsToSelector:@selector(tableCellHasSeparator:)]) {
+            [(id<StyleWithHasSeparator>) view tableCellHasSeparator:hasSeparator];
+        }
+    }];
 }
 
 @end

@@ -16,6 +16,7 @@
 + (void) webImageWithUrl: (NSURL*) url;
 + (void) webImageWithUrl: (NSURL*) url placeholderImage: (UIImage *) placeHolderImage;
 + (void) webImageWithUrl: (NSURL*) url styleClass: (NSString *) styleClass;
++ (void) webImageWithUrl: (NSURL*) url autoAspect: (BOOL) autoAspect styleClass: (NSString *) styleClass;
 + (void) webImageWithUrl: (NSURL*) url placeholderImage: (UIImage *) placeHolderImage styleClass: (NSString *) styleClass;
 
 @end

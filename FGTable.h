@@ -39,6 +39,8 @@
 
 + (BOOL) tableRefreshControl;
 
++ (BOOL) tableScrollToBottom;
+
 + (void) endTable;
 @end
 
@@ -47,5 +49,7 @@
 + (void)tableSeparatorStyle:(UITableViewCellSeparatorStyle) style;
 
 + (void)tableHeaderAffixTop: (BOOL) enableAffix;
+
++ (void)tableCellHasSeparator:(BOOL) hasSeparator;
 
 @end

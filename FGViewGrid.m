@@ -251,8 +251,16 @@ static NSString * NextGridColSpanDataKey = @"FGViewGridNextGridColSpanDataKey";
         [self addSubview:view];
     }
     applyStyleBlock(view);
-    view.leftConstraint = [self updateConstraint:view.leftConstraint view1:view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0*col/self.cols constant:col * self.gridSpacingX / self.cols];
-    view.topConstraint = [self updateConstraint:view.topConstraint view1:view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0*row/self.rows constant:row * self.gridSpacingY / self.rows];
+    if (col == 0) {
+        view.leftConstraint = [self updateConstraint:view.leftConstraint view1:view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeLeft multiplier:1 constant:0];
+    }else{
+        view.leftConstraint = [self updateConstraint:view.leftConstraint view1:view attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeRight multiplier:1.0*col/self.cols constant:col * self.gridSpacingX / self.cols];
+    }
+    if (row == 0) {
+        view.topConstraint = [self updateConstraint:view.topConstraint view1:view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeTop multiplier:1 constant:0];
+    }else{
+        view.topConstraint = [self updateConstraint:view.topConstraint view1:view attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeBottom multiplier:1.0*row/self.rows constant:row * self.gridSpacingY / self.rows];
+    }
     view.widthConstraint = [self updateConstraint:view.widthConstraint view1:view attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeWidth multiplier:(CGFloat)nextCell.colSpan/(CGFloat)self.cols constant: self.gridSpacingX * ((CGFloat)nextCell.colSpan - (CGFloat)self.cols) / (CGFloat)self.cols];
     view.heightConstraint = [self updateConstraint:view.heightConstraint view1:view attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeHeight multiplier:(CGFloat)nextCell.rowSpan/(CGFloat)self.rows constant:self.gridSpacingY * ((CGFloat)nextCell.rowSpan - (CGFloat)self.rows) / (CGFloat)self.rows];
     

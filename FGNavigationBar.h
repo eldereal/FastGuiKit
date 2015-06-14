@@ -11,6 +11,7 @@
 
 @interface FastGui(FGNavigationBar)
 
++ (void) navigationBarVisible: (BOOL) visible;
 
 + (void) beginNavigationBar;
 
