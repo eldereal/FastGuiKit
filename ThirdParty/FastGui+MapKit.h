@@ -27,6 +27,10 @@
 
 + (void)mapViewPolyline:(MKPolyline *)polyline styleClass: (NSString *) styleClass;
 
++ (BOOL) mapViewClickableCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle withPinImage:(UIImage *)image buttonImage: (UIImage *) buttonImage;
+
++ (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle withPinImage:(UIImage *)image;
+
 + (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle;
 
 + (void)mapViewTileOverlayWithUrlTemplate: (NSString *) template;

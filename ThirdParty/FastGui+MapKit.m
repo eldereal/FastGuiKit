@@ -7,6 +7,8 @@
 //
 
 #import <objc/runtime.h>
+#import <BlocksKit.h>
+#import <BlocksKit+UIKit.h>
 #import "FastGui+MapKit.h"
 #import "FGInternal.h"
 #import "FGReuseItemPool.h"
@@ -14,6 +16,15 @@
 #import "FGStyle.h"
 #import "UIView+FGStylable.h"
 #import "FGViewGroup.h"
+#import "UIView+changingResult.h"
+
+@interface FakeViewForStylable : UIView<FGStylable>
+
+@property (nonatomic, strong, readonly) id<FGStylable> target;
+
+- (instancetype) initWithTarget: (id<FGStylable>) target;
+
+@end
 
 @interface OverlayWithRenderer : NSObject<FGWithReuseId>
 
@@ -50,6 +61,10 @@
 @interface FGMapView()<MKMapViewDelegate>
 
 @property (nonatomic, strong) FGReuseItemPool *pool;
+
+@end
+
+@interface MKPolylineRenderer(FGStylable)<FGStylable>
 
 @end
 
@@ -120,19 +135,25 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 
 + (void)mapViewPolyline:(MKPolyline *)polyline styleClass:(NSString *)styleClass
 {
-    [self mapViewPolylineWithReuseId:[FGInternal callerPositionAsReuseId] polyline:polyline styleClass:nil];
+    [self mapViewPolylineWithReuseId:[FGInternal callerPositionAsReuseId] polyline:polyline styleClass:styleClass];
 }
 
 + (void)mapViewPolylineWithReuseId:(NSString *) reuseId polyline:(MKPolyline *)polyline styleClass:(NSString *)styleClass
 {
-    [self mapViewCustomOverlayWithBlock:^id<MKOverlay>(id<MKOverlay> reuseOverlay) {
+    MKPolylineRenderer * renderer = [self mapViewCustomOverlayWithBlock:^id<MKOverlay>(id<MKOverlay> reuseOverlay) {
         return polyline;
     } withReuseId:reuseId withRenderer:^MKOverlayRenderer *(id<MKOverlay> overlay, MKOverlayRenderer *reuseRenderer) {
         MKPolylineRenderer *renderer = (MKPolylineRenderer*)reuseRenderer;
         if (renderer == nil) {
-            renderer = [[MKPolylineRenderer alloc] initWithOverlay:overlay];
+            renderer = [[MKPolylineRenderer alloc] initWithPolyline:(MKPolyline *)overlay];
         }
         return renderer;
+    } resultBlock:^id(id<MKOverlay> overlay, MKOverlayRenderer *renderer) {
+        return renderer;
+    }];
+    FakeViewForStylable *fake = [[FakeViewForStylable alloc] initWithTarget:renderer];
+    [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
+        return fake;
     } resultBlock:nil];
 }
 
@@ -153,6 +174,11 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
     } resultBlock:nil];
 }
 
++ (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle withPinImage:(UIImage *)image
+{
+    [self mapViewTextCalloutPinWithReuseId:[FGInternal callerPositionAsReuseId] location:location calloutText:calloutText subtitle:subtitle withPinImage:image];
+}
+
 + (void)mapViewTextCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle: (NSString *) subtitle
 {
     [self mapViewTextCalloutPinWithReuseId:[FGInternal callerPositionAsReuseId] location:location calloutText:calloutText subtitle:subtitle withPinImage:nil];
@@ -170,7 +196,7 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         anno.title = calloutText;
         anno.subtitle = subtitle;
         return anno;
-    } withReuseId:[FGInternal callerPositionAsReuseId] withView:^MKAnnotationView *(id<MKAnnotation> annotation, MKAnnotationView *reuseView) {
+    } withReuseId:reuseId withView:^MKAnnotationView *(id<MKAnnotation> annotation, MKAnnotationView *reuseView) {
         if (reuseView.annotation != annotation || (image != nil && [reuseView isKindOfClass:[MKPinAnnotationView class]]) || (image == nil && ![reuseView isKindOfClass:[MKPinAnnotationView class]])) {
             reuseView = [image == nil ? [MKPinAnnotationView alloc] : [MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:reuseId];
         }
@@ -180,33 +206,39 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         reuseView.canShowCallout = calloutText != nil || subtitle != nil;
         return reuseView;
     } resultBlock:nil];
-//    [self mapviewc]
-//    AnnotationWithView *item = (AnnotationWithView *)[self.mapView.pool updateItem:reuseId initBlock:^id<FGWithReuseId>(id<FGWithReuseId> reuseItem) {
-//        AnnotationWithView *item = (AnnotationWithView *)reuseItem;
-//        if (item == nil) {
-//            item = [[AnnotationWithView alloc] init];
-//            item.annotation = [[MKPointAnnotation alloc] init];
-//            if (image == nil) {
-//                item.view = [[MKPinAnnotationView alloc] initWithAnnotation:item.annotation reuseIdentifier:reuseId];
-//                ((MKPinAnnotationView *)item.view).animatesDrop = NO;
-//            }else{
-//                item.view = [[MKAnnotationView alloc] initWithAnnotation:item.annotation reuseIdentifier:reuseId];
-//                
-//            }
-//            item.view.canShowCallout = YES;
-//            
-//        }
-//        if (image != nil) {
-//            item.view.image = image;
-//        }
-//        ((MKPointAnnotation *)item.annotation).title = calloutText;
-//        ((MKPointAnnotation *)item.annotation).subtitle = subtitle;
-//        ((MKPointAnnotation *)item.annotation).coordinate = location;
-//        return item;
-//    } outputIsNewView:&isNew];
-//    if (isNew) {
-//        [self.mapView addAnnotation:item.annotation];
-//    }
+}
+
++ (BOOL)mapViewClickableCalloutPinWithLocation:(CLLocationCoordinate2D)location calloutText:(NSString *)calloutText subtitle:(NSString *)subtitle withPinImage:(UIImage *)image buttonImage:(UIImage *)buttonImage
+{
+    NSString *reuseId = [FGInternal callerPositionAsReuseId];
+    NSNumber * ret = [self mapViewCustomAnnotationWithBlock:^id<MKAnnotation>(id<MKAnnotation> reuseAnnotation) {
+        MKPointAnnotation *anno = (MKPointAnnotation *) reuseAnnotation;
+        if (anno == nil) {
+            anno = [[MKPointAnnotation alloc] init];
+        }
+        anno.coordinate = location;
+        anno.title = calloutText;
+        anno.subtitle = subtitle;
+        return anno;
+    } withReuseId:reuseId withView:^MKAnnotationView *(id<MKAnnotation> annotation, MKAnnotationView *reuseView) {
+        if (reuseView.annotation != annotation || (image != nil && [reuseView isKindOfClass:[MKPinAnnotationView class]]) || (image == nil && ![reuseView isKindOfClass:[MKPinAnnotationView class]])) {
+            reuseView = [image == nil ? [MKPinAnnotationView alloc] : [MKAnnotationView alloc] initWithAnnotation:annotation reuseIdentifier:reuseId];
+        }
+        if (image != nil) {
+            reuseView.image = image;
+        }
+        reuseView.canShowCallout = calloutText != nil || subtitle != nil;
+        UIButton *btn = (UIButton *) reuseView.rightCalloutAccessoryView;
+        if (btn == nil) {
+            btn = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+            reuseView.rightCalloutAccessoryView = btn;
+        }
+        [btn setImage:buttonImage forState:UIControlStateNormal];
+        return reuseView;
+    } resultBlock:^id(id<MKAnnotation> annotation, MKAnnotationView *view) {
+        return view.changingResult;
+    }];
+    return [ret boolValue];
 }
 
 
@@ -301,6 +333,10 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 
 - (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
 {
+    UIView *view = initBlock(nil);
+    if ([view conformsToProtocol:@protocol(FGStylable)]) {
+        applyStyleBlock(view);
+    }
     return nil;
 }
 
@@ -451,29 +487,69 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
     return nil;
 }
 
+-(void)mapView:(MKMapView *)mapView annotationView:(MKAnnotationView *)view calloutAccessoryControlTapped:(UIControl *)control
+{
+    [view reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
+}
+
 @end
 
-//@implementation MKPolylineView(FastGui)
-//
-//- (void) styleWithBorder:(UIColor *)color width:(CGFloat)borderWidth
-//{
-//    self.strokeColor = color;
-//    self.lineWidth = borderWidth;
-//}
-//
-//- (void) styleWithBorderColor:(UIColor *)borderColor
-//{
-//    self.strokeColor = borderColor;
-//}
-//
-//- (void) styleWithBorderWidth:(CGFloat)borderWidth
-//{
-//    self.lineWidth = borderWidth;
-//}
-//
-//- (void) styleWithColor:(UIColor *)color
-//{
-//    self.strokeColor = color;
-//}
-//
-//@end
+@implementation FakeViewForStylable
+
+@synthesize target = _target;
+
+- (instancetype)initWithTarget:(id<FGStylable>)target
+{
+    self = [super init];
+    if (self) {
+        _target = target;
+    }
+    return self;
+}
+
+- (void) styleWithBorder:(UIColor *)color width:(CGFloat)borderWidth
+{
+    [self.target styleWithBorder:color width:borderWidth];
+}
+
+- (void) styleWithBorderColor:(UIColor *)borderColor
+{
+    [self.target styleWithBorderColor:borderColor];
+}
+
+- (void) styleWithBorderWidth:(CGFloat)borderWidth
+{
+    [self.target styleWithBorderWidth:borderWidth];
+}
+
+- (void) styleWithColor:(UIColor *)color
+{
+    [self.target styleWithColor:color];
+}
+
+@end
+
+@implementation MKPolylineRenderer (FGStylable)
+
+- (void)styleWithBorder:(UIColor *)color width:(CGFloat)borderWidth
+{
+    self.strokeColor = color;
+    self.lineWidth = borderWidth;
+}
+
+- (void) styleWithBorderColor:(UIColor *)borderColor
+{
+    self.strokeColor = borderColor;
+}
+
+- (void) styleWithBorderWidth:(CGFloat)borderWidth
+{
+    self.lineWidth = borderWidth;
+}
+
+- (void) styleWithColor:(UIColor *)color
+{
+    self.strokeColor = color;
+}
+
+@end
