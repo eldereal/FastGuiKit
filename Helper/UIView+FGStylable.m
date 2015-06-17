@@ -90,6 +90,11 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 
 - (NSLayoutConstraint *) updateConstraint: (NSLayoutConstraint *)constraint view1: (id)view1 attribute:(NSLayoutAttribute)attr1 relatedBy:(NSLayoutRelation)relation toItem:(id)view2 attribute:(NSLayoutAttribute)attr2 multiplier:(CGFloat)multiplier constant:(CGFloat)c
 {
+    return [self updateConstraint:constraint view1:view1 attribute:attr1 relatedBy:relation toItem:view2 attribute:attr2 multiplier:multiplier constant:c priority:UILayoutPriorityRequired];
+}
+
+- (NSLayoutConstraint *) updateConstraint: (NSLayoutConstraint *)constraint view1: (id)view1 attribute:(NSLayoutAttribute)attr1 relatedBy:(NSLayoutRelation)relation toItem:(id)view2 attribute:(NSLayoutAttribute)attr2 multiplier:(CGFloat)multiplier constant:(CGFloat)c priority: (UILayoutPriority) priority
+{
     if (constraint != nil) {
         if (constraint.firstItem != view1 ||
             constraint.secondItem != view2 ||

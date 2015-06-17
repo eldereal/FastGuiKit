@@ -26,6 +26,8 @@ typedef NS_ENUM(NSUInteger, FGNavigationBarMode)
 
 @property (nonatomic, readonly) UINavigationItem * navigationItem;
 
+@property (nonatomic, weak, readonly) UINavigationController * navigationController;
+
 - (BOOL) beginNavigationBar;
 
 @end
@@ -56,6 +58,7 @@ typedef NS_ENUM(NSUInteger, FGNavigationBarMode)
 
 @end
 
+static void * NavigationBarVisibleMethodKey = &NavigationBarVisibleMethodKey;
 static void * SetTitleMethodKey = &SetTitleMethodKey;
 static void * SetTitleViewMethodKey = &SetTitleViewMethodKey;
 static void * LeftItemsMethodKey = &LeftItemsMethodKey;
@@ -64,10 +67,23 @@ static void * EndMethodKey = &EndMethodKey;
 
 static NSString * TitleDataKey = @"FGNavigationBarTitleDataKey";
 static NSString * ShowBackButtonDataKey = @"FGNavigationBarShowBackButtonDataKey";
-
+static NSString * VisibleDataKey = @"FGNavigationBarVisibleDataKey";
 static NSObject *beacon = nil;
 
 @implementation FastGui(FGNavigationBar)
+
++ (void)navigationBarVisible:(BOOL)visible
+{
+    if (beacon == nil) {
+        beacon = [[NSObject alloc] init];
+    }
+    if ([self customData:NavigationBarVisibleMethodKey data:@{VisibleDataKey: [NSNumber numberWithBool: visible]}] != beacon) {
+        //no one handles this message
+        [self beginNavigationBar];
+        [self navigationBarVisible: visible];
+        [self endNavigationBar];
+    }
+}
 
 + (void) beginNavigationBar
 {
@@ -156,6 +172,7 @@ static NSObject *beacon = nil;
     while (ctx!=nil) {
         if([ctx isKindOfClass:[UIViewController class]]){
             _navigationItem = ((UIViewController*)ctx).navigationItem;
+            _navigationController = ((UIViewController*)ctx).navigationController;
             break;
         }
         ctx = ctx.parentContext;
@@ -264,6 +281,9 @@ static NSObject *beacon = nil;
     if(key == SetTitleMethodKey){
         [self navigationTitle: data[TitleDataKey]];
         return beacon;
+    }else if(key == NavigationBarVisibleMethodKey){
+        [self navigationBarVisible:[(NSNumber *) data[VisibleDataKey] boolValue]];
+        return beacon;
     }else if(key == SetTitleViewMethodKey){
         [self navigationTitleView];
     }else if(key == LeftItemsMethodKey){
@@ -287,6 +307,14 @@ static NSObject *beacon = nil;
     self.navigationItem.leftItemsSupplementBackButton = showBackButton;
     self.navigationItem.hidesBackButton = !showBackButton;
     self.mode = FGNavigationBarModeLeft;
+}
+
+- (void) navigationBarVisible: (BOOL) visible
+{
+    if (self.navigationController == nil) {
+        return;
+    }
+    [self.navigationController setNavigationBarHidden:!visible];
 }
 
 - (void) navigationTitle: (NSString *) title
