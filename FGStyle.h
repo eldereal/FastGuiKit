@@ -41,6 +41,10 @@ typedef NS_ENUM(NSUInteger, FGStyleOverflow)
 
 - (void) styleWithVerticalCenter: (CGFloat) verticalCenter;
 
+- (void) styleWithHorizontalCenterPercentage: (CGFloat) horizontalCenterPercentage;
+
+- (void) styleWithVerticalCenterPercentage: (CGFloat) verticalCenterPercentage;
+
 - (void) styleWithLeftPercentage: (CGFloat) leftPercentage;
 
 - (void) styleWithRightPercentage: (CGFloat) rightPercentage;
@@ -127,7 +131,11 @@ typedef NS_ENUM(NSUInteger, FGStyleOverflow)
 
 + (void) horizontalCenter: (CGFloat) horizontalCenter;
 
++ (void) horizontalCenterPercentage: (CGFloat) horizontalCenter;
+
 + (void) verticalCenter: (CGFloat) verticalCenter;
+
++ (void) verticalCenterPercentage: (CGFloat) verticalCenter;
 
 + (void) textAlign: (NSTextAlignment) textAlign;
 

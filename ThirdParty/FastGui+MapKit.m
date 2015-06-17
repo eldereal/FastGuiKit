@@ -524,7 +524,7 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 //    desireRegion.span.longitudeDelta *= zoom / desireZoom;
 //    desireRegion.span.latitudeDelta *= zoom / desireZoom;
 //    
-//    NSLog(@"%f, %f", zoom, desireZoom);
+//    DLog(@"%f, %f", zoom, desireZoom);
 //    
 //    if (!MKCoordinateRegionEquals(region, desireRegion)) {
 //        [self setRegion:desireRegion animated:NO];

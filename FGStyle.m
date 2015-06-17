@@ -229,6 +229,16 @@ static UIView *_view;
     tryPerformSelectorWithObject(styleWithVerticalCenter, verticalCenter);
 }
 
++ (void)horizontalCenterPercentage:(CGFloat)horizontalCenter
+{
+    tryPerformSelectorWithObject(styleWithHorizontalCenterPercentage, horizontalCenter);
+}
+
++ (void)verticalCenterPercentage:(CGFloat)verticalCenter
+{
+    tryPerformSelectorWithObject(styleWithVerticalCenterPercentage, verticalCenter);
+}
+
 + (void)hidden:(BOOL)hidden
 {
     tryPerformSelectorWithObject(styleWithHidden, hidden);

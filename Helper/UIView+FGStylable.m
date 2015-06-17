@@ -357,12 +357,42 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
     }
 }
 
+- (void)styleWithHorizontalCenterPercentage:(CGFloat)horizontalCenterPercentage
+{
+    [self setTranslatesAutoresizingMaskIntoConstraints:NO];
+    if (self.superview != nil) {
+        if (horizontalCenterPercentage == 0) {
+            self.horizontalCenterConstraint = [self.superview updateConstraint:self.horizontalCenterConstraint view1:self attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeLeft multiplier:1 constant:0];
+        }else if (!isnan(horizontalCenterPercentage)) {
+            CGFloat multiplier = 50 / horizontalCenterPercentage;
+            self.horizontalCenterConstraint = [self.superview updateConstraint:self.horizontalCenterConstraint view1:self attribute:NSLayoutAttributeCenterX relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeCenterX multiplier:multiplier constant:0];
+        }else{
+            self.horizontalCenterConstraint = nil;
+        }
+    }
+}
+
 - (void)styleWithVerticalCenter:(CGFloat)verticalCenter
 {
     [self setTranslatesAutoresizingMaskIntoConstraints:NO];
     if (self.superview != nil) {
         if (!isnan(verticalCenter)) {
             self.verticalCenterConstraint = [self.superview updateConstraint:self.verticalCenterConstraint view1:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeCenterY multiplier:1 constant:verticalCenter];
+        }else{
+            self.verticalCenterConstraint = nil;
+        }
+    }
+}
+
+- (void)styleWithVerticalCenterPercentage:(CGFloat)verticalCenterPercentage
+{
+    [self setTranslatesAutoresizingMaskIntoConstraints:NO];
+    if (self.superview != nil) {
+        if (verticalCenterPercentage == 0) {
+            self.verticalCenterConstraint = [self.superview updateConstraint:self.verticalCenterConstraint view1:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeTop multiplier:1 constant:0];
+        }else if (!isnan(verticalCenterPercentage)) {
+            CGFloat multiplier = 50 / verticalCenterPercentage;
+            self.verticalCenterConstraint = [self.superview updateConstraint:self.verticalCenterConstraint view1:self attribute:NSLayoutAttributeCenterY relatedBy:NSLayoutRelationEqual toItem:self.superview attribute:NSLayoutAttributeCenterY multiplier:multiplier constant:0];
         }else{
             self.verticalCenterConstraint = nil;
         }
