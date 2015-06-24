@@ -36,3 +36,11 @@
 + (void) endGroup;
 
 @end
+
+@interface FGView : UIView
+
+- (void) onGui;
+
+- (void) styleSheet;
+
+@end

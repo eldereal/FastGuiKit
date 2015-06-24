@@ -329,3 +329,68 @@ static void * StyleBottomOrRight = &StyleBottomOrRight;
 }
 
 @end
+
+@interface FGView()<FGContext>
+
+@end
+
+@implementation FGView
+
+@synthesize parentContext;
+
+- (NSString *) viewStyleClass
+{
+    return nil;
+}
+
+- (void) reloadGui
+{
+    [FastGui beginGroupWithNextView];
+    [FastGui customViewWithClass:[self viewStyleClass] reuseId:[FGInternal memoryPositionAsReuseIdOfObject:self] initBlock:^UIView *(UIView *reuseView) {
+        return self;
+    } resultBlock:nil];
+    [self onGui];
+    [FastGui endGroup];
+}
+
+- (void) layoutSubviews
+{
+    [FastGui reloadGuiSyncWithContext:self];
+}
+
+- (void) styleSheet
+{
+    
+}
+
+-(void) onGui
+{
+    
+}
+
+- (void) customViewControllerWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewControllerBlock)initBlock
+{
+    NSLog(@"View context doesn't support custom view controllers.");
+}
+
+- (void)dismissViewController
+{
+    NSLog(@"View context doesn't support custom view controllers.");
+}
+
+- (id) customData:(void *)key data:(NSDictionary *)data
+{
+    return nil;
+}
+
+- (id)customViewWithReuseId:(NSString *)reuseId initBlock:(FGInitCustomViewBlock)initBlock resultBlock:(FGGetCustomViewResultBlock)resultBlock applyStyleBlock:(FGStyleBlock)applyStyleBlock
+{
+    if ([reuseId isEqualToString:[FGInternal memoryPositionAsReuseIdOfObject:self]]) {
+        applyStyleBlock(initBlock(nil));
+    }else{
+        NSLog(@"Unmatched context, Do you have called to 'EndGroup' without matching 'BeginGroup'?\n");
+    }
+    return nil;
+}
+
+@end
