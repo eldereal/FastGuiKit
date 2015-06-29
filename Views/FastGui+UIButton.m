@@ -20,71 +20,53 @@
 
 @implementation FastGui (UIButton)
 
-+ (void)buttonWithTitle:(NSString *)title styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
-{
-    [self customViewWithClass:styleClass reuseId:[FGInternal callerPositionAsReuseId] initBlock:^UIView *(UIView *reuseView) {
-        UIButton *btn = (UIButton *) reuseView;
-        if (btn == nil) {
-            btn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [btn addTarget:btn action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
-        }
-        [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(id btn){
-            onClick();
-        }];
-        [UIView setAnimationsEnabled:NO];
-        [btn setTitle:title forState:UIControlStateNormal];
-        [UIView setAnimationsEnabled:YES];
-        return btn;
-    } resultBlock:nil];
-}
-
 + (BOOL)buttonWithTitle:(NSString *)title styleClass:(NSString *)styleClass
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:NO] title: title selectedTitle:title styleClass: styleClass];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:NO] title: title selectedTitle:title imageName:nil styleClass: styleClass];
 }
 
 + (BOOL) toggleButtonWithTitle:(NSString *)title
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:title styleClass: nil];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:title imageName:nil styleClass: nil];
 }
 
 + (BOOL)toggleButtonWithTitle:(NSString *)title styleClass:(NSString *)styleClass
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:title styleClass: styleClass];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:title imageName:nil styleClass: styleClass];
 }
 
 + (BOOL)toggleButtonWithTitle:(NSString *)title selectedTitle:(NSString *)selectedTitle
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:selectedTitle styleClass:nil];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:selectedTitle imageName:nil styleClass:nil];
 }
 
 + (BOOL)toggleButtonWithTitle:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:selectedTitle styleClass:styleClass];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:nil title: title selectedTitle:selectedTitle imageName:nil styleClass:styleClass];
 }
 
 + (BOOL) toggleButtonWithSelected: (BOOL) selected title:(NSString *)title
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:title styleClass: nil];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:title imageName:nil styleClass: nil];
 }
 
 + (BOOL)toggleButtonWithSelected: (BOOL) selected title:(NSString *)title styleClass:(NSString *)styleClass
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:title styleClass: styleClass];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:title imageName:nil styleClass: styleClass];
 }
 
 + (BOOL)toggleButtonWithSelected: (BOOL) selected title:(NSString *)title selectedTitle:(NSString *)selectedTitle
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:selectedTitle styleClass:nil];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:selectedTitle imageName:nil styleClass:nil];
 }
 
 + (BOOL)toggleButtonWithSelected: (BOOL) selected title:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
 {
-    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:selectedTitle styleClass:styleClass];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:selected] title: title selectedTitle:selectedTitle imageName:nil styleClass:styleClass];
 }
 
 
-+ (BOOL)toggleButtonWithReuseId:(NSString *)reuseId selected: (NSNumber *)selected title:(NSString *)title selectedTitle:(NSString *)selectedTitle styleClass:(NSString *)styleClass
++ (BOOL)toggleButtonWithReuseId:(NSString *)reuseId selected: (NSNumber *)selected title:(NSString *)title selectedTitle:(NSString *)selectedTitle imageName:(NSString *)imageName styleClass:(NSString *)styleClass
 {
     NSNumber *ret = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
         UIButton *btn = (UIButton *) reuseView;
@@ -103,6 +85,11 @@
         [UIView setAnimationsEnabled:NO];
         [btn setTitle:title forState:UIControlStateNormal];
         [btn setTitle:selectedTitle forState:UIControlStateSelected];
+        if (imageName == nil) {
+            [btn setImage:nil forState:UIControlStateNormal];
+        }else{
+            [btn setImage:[UIImage imageNamed:imageName] forState:UIControlStateNormal];
+        }
         [UIView setAnimationsEnabled:YES];
         return btn;
     } resultBlock:^id(UIView *view) {
@@ -116,53 +103,28 @@
     return ret.boolValue;
 }
 
-+ (void)imageButtonWithName:(NSString *)imageName onClick:(FGVoidBlock)onClick
-{
-    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:nil onClick:onClick];
-}
-
-+ (void)imageButtonWithName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
-{
-    [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:styleClass onClick:onClick];
-}
-
-+ (BOOL)imageButtonWithName:(NSString *)imageName
-{
-    return [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:nil onClick:nil];
-}
-
 + (BOOL)imageButtonWithName:(NSString *)imageName styleClass:(NSString *)styleClass
 {
-    return [self imageButtonWithReuseId:[FGInternal callerPositionAsReuseId] imageName:imageName styleClass:styleClass onClick:nil];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:NO] title:nil selectedTitle:nil imageName:imageName styleClass:styleClass];
 }
 
-+ (BOOL)imageButtonWithReuseId: (NSString *) reuseId imageName:(NSString *)imageName styleClass:(NSString *)styleClass onClick:(FGVoidBlock)onClick
++ (BOOL)imageButtonWithName:(NSString *)imageName withTitle:(NSString *)title styleClass:(NSString *)styleClass
 {
-    UIButton *btn = [self customViewWithClass:styleClass reuseId:reuseId initBlock:^UIView *(UIView *reuseView) {
-        UIButton *btn = (UIButton *) reuseView;
-        if (btn == nil) {
-            btn = [UIButton buttonWithType:UIButtonTypeCustom];
-            [btn addTarget:btn action:@selector(notify) forControlEvents:UIControlEventTouchUpInside];
-        }
-        if (btn.changingResult == nil) {
-            if (onClick == nil) {
-                [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(UIButton *btn){
-                    [btn reloadGuiChangingResult:[NSNumber numberWithBool:YES]];
-                }];
-            }else{
-                [btn respondsToSelector:@selector(notify) withKey:nil usingBlock:^(id btn){
-                    onClick();
-                }];
-            }
-        }
-        
-        [UIView setAnimationsEnabled:NO];
-        [btn setImage:[UIImage imageNamed:imageName] forState: UIControlStateNormal];
-        [UIView setAnimationsEnabled:YES];
-        return btn;
-    } resultBlock:^(id view){ return view; }];
-    return [(NSNumber*)btn.changingResult boolValue];
+    return [self toggleButtonWithReuseId:[FGInternal callerPositionAsReuseId] selected:[NSNumber numberWithBool:NO] title:title selectedTitle:nil imageName:imageName styleClass:styleClass];
 }
+@end
 
+@implementation FGStyle (UIButton)
+
++ (void) imageButtonImageTextSpacing: (CGFloat) spacing
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[UIButton class]]) {
+            UIButton *btn = (UIButton *)view;
+            btn.imageEdgeInsets = UIEdgeInsetsMake(0, 0, 0, spacing);
+            btn.titleEdgeInsets = UIEdgeInsetsMake(0, spacing, 0, 0);
+        }
+    }];
+}
 
 @end

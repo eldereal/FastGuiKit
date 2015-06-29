@@ -10,8 +10,6 @@
 
 @interface FastGui (UIButton)
 
-+ (void) buttonWithTitle: (NSString *) title styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
-
 + (BOOL) buttonWithTitle: (NSString *) title styleClass: (NSString *)styleClass;
 
 + (BOOL) toggleButtonWithTitle: (NSString *) title;
@@ -30,13 +28,13 @@
 
 + (BOOL) toggleButtonWithSelected: (BOOL) selected title: (NSString *) title selectedTitle: (NSString *) selectedTitle styleClass: (NSString *)styleClass;
 
-+ (void) imageButtonWithName: (NSString *) imageName styleClass: (NSString *)styleClass onClick: (FGVoidBlock) onClick;
-
-+ (void) imageButtonWithName: (NSString *) imageName onClick: (FGVoidBlock) onClick;
-
 + (BOOL) imageButtonWithName: (NSString *) imageName styleClass: (NSString *)styleClass;
 
-+ (BOOL) imageButtonWithName: (NSString *) imageName;
++ (BOOL) imageButtonWithName: (NSString *) imageName withTitle: (NSString *) title styleClass: (NSString *)styleClass;
+@end
 
+@interface FGStyle(UIButton)
+
++ (void) imageButtonImageTextSpacing: (CGFloat) spacing;
 
 @end
