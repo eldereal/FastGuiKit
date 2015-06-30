@@ -531,6 +531,7 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 //    }
 //}
 
+
 - (void)mapView:(MKMapView *)mapView regionDidChangeAnimated:(BOOL)animated
 {
     if (MKMapRectIsNull(self.limitRegion) || MKMapRectIsEmpty(self.limitRegion)) {
@@ -567,47 +568,71 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
     desireRegion.origin.x -= widthDelta / 2;
     desireRegion.origin.y -= heightDelta / 2;
     
-    if (widthZoom > 1) {
-        if (desireRegion.origin.x < self.limitRegion.origin.x) {
-            desireRegion.origin.x = self.limitRegion.origin.x;
-            anyChange = true;
-        }else if(desireRegion.origin.x + desireRegion.size.width > self.limitRegion.origin.x + self.limitRegion.size.width){
-            desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width - desireRegion.size.width;
-            anyChange = true;
-        }
-    }else{
-        if (desireRegion.origin.x > self.limitRegion.origin.x) {
-            desireRegion.origin.x = self.limitRegion.origin.x;
-        }else if(desireRegion.origin.x + desireRegion.size.width < self.limitRegion.origin.x + self.limitRegion.size.width){
-            desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width - desireRegion.size.width;
-        }
+    
+    if (desireRegion.origin.x > self.limitRegion.origin.x + self.limitRegion.size.width) {
+        desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width * 3 / 4;
+        anyChange = true;
+    }
+    if (desireRegion.origin.x + desireRegion.size.width < self.limitRegion.origin.x) {
+        desireRegion.origin.x = self.limitRegion.origin.x - desireRegion.size.width + self.limitRegion.size.width / 4;
+        anyChange = true;
+    }
+    if (desireRegion.origin.y > self.limitRegion.origin.y + self.limitRegion.size.height) {
+        desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height * 3 /4;
+        anyChange = true;
+    }
+    if (desireRegion.origin.y + desireRegion.size.height < self.limitRegion.origin.y) {
+        desireRegion.origin.y = self.limitRegion.origin.y - desireRegion.size.height + self.limitRegion.size.height / 4;
+        anyChange = true;
     }
     
-    if (heightZoom > 1) {
-        if (desireRegion.origin.y < self.limitRegion.origin.y) {
-            desireRegion.origin.y = self.limitRegion.origin.y;
-            anyChange = true;
-        }else if(desireRegion.origin.y + desireRegion.size.height > self.limitRegion.origin.y + self.limitRegion.size.height){
-            desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height - desireRegion.size.height;
-            anyChange = true;
-        }
-    }else{
-        if (desireRegion.origin.y > self.limitRegion.origin.y) {
-            desireRegion.origin.y = self.limitRegion.origin.y;
-            anyChange = true;
-        }else if(desireRegion.origin.y + desireRegion.size.height < self.limitRegion.origin.y + self.limitRegion.size.height){
-            desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height - desireRegion.size.height;
-            anyChange = true;
-        }
-    }
+//    if (widthZoom > 1) {
+//        if (desireRegion.origin.x < self.limitRegion.origin.x) {
+//            desireRegion.origin.x = self.limitRegion.origin.x;
+//            anyChange = true;
+//        }else if(desireRegion.origin.x + desireRegion.size.width > self.limitRegion.origin.x + self.limitRegion.size.width){
+//            desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width - desireRegion.size.width;
+//            anyChange = true;
+//        }
+//    }else{
+//        if (desireRegion.origin.x > self.limitRegion.origin.x) {
+//            desireRegion.origin.x = self.limitRegion.origin.x;
+//            anyChange = true;
+//        }else if(desireRegion.origin.x + desireRegion.size.width < self.limitRegion.origin.x + self.limitRegion.size.width){
+//            desireRegion.origin.x = self.limitRegion.origin.x + self.limitRegion.size.width - desireRegion.size.width;
+//            anyChange = true;
+//        }
+//    }
+//    
+//    if (heightZoom > 1) {
+//        if (desireRegion.origin.y < self.limitRegion.origin.y) {
+//            desireRegion.origin.y = self.limitRegion.origin.y;
+//            anyChange = true;
+//        }else if(desireRegion.origin.y + desireRegion.size.height > self.limitRegion.origin.y + self.limitRegion.size.height){
+//            desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height - desireRegion.size.height;
+//            anyChange = true;
+//        }
+//    }else{
+//        if (desireRegion.origin.y > self.limitRegion.origin.y) {
+//            desireRegion.origin.y = self.limitRegion.origin.y;
+//            anyChange = true;
+//        }else if(desireRegion.origin.y + desireRegion.size.height < self.limitRegion.origin.y + self.limitRegion.size.height){
+//            desireRegion.origin.y = self.limitRegion.origin.y + self.limitRegion.size.height - desireRegion.size.height;
+//            anyChange = true;
+//        }
+//    }
     
     
     if (anyChange) {
         
         [UIView animateWithDuration:0.3 delay:0 options:UIViewAnimationOptionAllowUserInteraction|UIViewAnimationOptionCurveEaseInOut animations:^{
             self.manuallyChangingMapRect = YES;
-            [mapView setVisibleMapRect:desireRegion animated:YES];
-                    self.manuallyChangingMapRect = NO;
+            if (desireZoom != zoom) {
+                [mapView setVisibleMapRect:desireRegion animated:animated];
+            }else{
+                [mapView setCenterCoordinate:MKCoordinateForMapPoint(MKMapPointMake(desireRegion.origin.x + desireRegion.size.width /2, desireRegion.origin.y + desireRegion.size.height/2)) animated:animated];
+            }
+            self.manuallyChangingMapRect = NO;
         } completion:nil];
 
     }
@@ -720,9 +745,10 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
             MKMapPoint b = MKMapPointForCoordinate(CLLocationCoordinate2DMake(
                                                                               region.center.latitude - region.span.latitudeDelta / 2,
                                                                               region.center.longitude + region.span.longitudeDelta / 2));
-            map.limitRegion =  MKMapRectMake(MIN(a.x,b.x), MIN(a.y,b.y), ABS(a.x-b.x), ABS(a.y-b.y));
             map.limitRegionMaxZoom = maxZoom;
             map.limitRegionMinZoom = minZoom;
+            map.limitRegion =  MKMapRectMake(MIN(a.x,b.x), MIN(a.y,b.y), ABS(a.x-b.x), ABS(a.y-b.y));
+            [map mapView:map regionDidChangeAnimated:NO];
         }
     }];
 }
