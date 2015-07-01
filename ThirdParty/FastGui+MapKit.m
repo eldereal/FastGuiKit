@@ -237,6 +237,7 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         UIButton *btn = (UIButton *) reuseView.rightCalloutAccessoryView;
         if (btn == nil) {
             btn = [UIButton buttonWithType:UIButtonTypeDetailDisclosure];
+            btn.tintColor = [UIColor defaultTintColor];
             reuseView.rightCalloutAccessoryView = btn;
         }
         [btn setImage:buttonImage forState:UIControlStateNormal];
