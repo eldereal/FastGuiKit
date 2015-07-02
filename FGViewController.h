@@ -27,4 +27,6 @@
 
 - (void) styleSheet;
 
+- (BOOL) extendToFullScreen;
+
 @end
