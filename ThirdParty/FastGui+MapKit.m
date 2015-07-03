@@ -62,6 +62,10 @@ const MKCoordinateRegion MKCoordinateRegionZero = {{0,0},{0,0}};
 
 - (void) beginMapView;
 
+@property (nonatomic) NSUInteger overlayIndex;
+
+@property (nonatomic) NSUInteger annotationIndex;
+
 @end
 
 @interface FGMapView()<MKMapViewDelegate>
@@ -272,6 +276,8 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 
 @implementation FGMapViewContext
 
+static void * IndexPropertyKey = &IndexPropertyKey;
+
 @synthesize mapView = _mapView;
 
 - (instancetype)initWithMapView:(FGMapView *)mapView
@@ -286,6 +292,8 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
 - (void) beginMapView
 {
     [self.mapView.pool prepareUpdateItems];
+    self.overlayIndex = 0;
+    self.annotationIndex = 0;
 }
 
 - (void) endMapView
@@ -298,6 +306,49 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
             [self.mapView removeAnnotation:((AnnotationWithView*)item).annotation];
         }
     }];
+    //sort overlays with selection sort because it has fewer swap operations
+    NSArray *overlays = self.mapView.overlays;
+    for (int i=0; i<overlays.count; i++) {
+        NSUInteger minIndex = [(NSNumber *)objc_getAssociatedObject(overlays[i], IndexPropertyKey) unsignedIntegerValue];
+        int minJ = i;
+        for (int j=i+1; j<overlays.count; j++) {
+            NSUInteger index = [(NSNumber *)objc_getAssociatedObject(overlays[j], IndexPropertyKey) unsignedIntegerValue];
+            if (index < minIndex) {
+                minIndex = index;
+                minJ = j;
+            }
+        }
+        if (minJ != i) {
+            [self.mapView exchangeOverlayAtIndex:minJ withOverlayAtIndex:i];
+            overlays = self.mapView.overlays;
+        }
+    }
+    
+    NSArray *subviews = self.mapView.subviews;
+    for (int i=0; i<subviews.count; i++) {
+        NSNumber *index = objc_getAssociatedObject(subviews[i], IndexPropertyKey);
+        if (index == nil) {
+            continue;
+        }
+        NSUInteger minIndex = index.unsignedIntegerValue;
+        int minJ = i;
+        for (int j=i+1; j<subviews.count; j++) {
+            NSNumber *jindex = objc_getAssociatedObject(subviews[j], IndexPropertyKey);
+            if (jindex == nil) {
+                continue;
+            }
+            NSUInteger index = jindex.unsignedIntegerValue;
+            if (index < minIndex) {
+                minIndex = index;
+                minJ = j;
+            }
+        }
+        if (minJ != i) {
+            [self.mapView exchangeSubviewAtIndex:i withSubviewAtIndex:minJ];
+            subviews = self.mapView.subviews;
+        }
+    }
+    
     [FastGui popContext];
 }
 
@@ -367,16 +418,11 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
             }
             ov.renderer = r;
         }
+        objc_setAssociatedObject(ov.overlay, IndexPropertyKey, [NSNumber numberWithUnsignedInteger:self.overlayIndex++], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return ov;
     } outputIsNewView: &isNew];
     if (isNew) {
         [self.mapView addOverlay:ov.overlay];
-    }else{
-        NSUInteger index = [self.mapView.overlays indexOfObject:ov.overlay];
-        while (index != self.mapView.overlays.count - 1) {
-            [self.mapView exchangeOverlayAtIndex:index withOverlayAtIndex:index+1];
-            index ++;
-        }
     }
     if (resultBlock != nil) {
         return resultBlock(ov.overlay, ov.renderer);
@@ -405,12 +451,11 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
             }
             av.view = view;
         }
+        objc_setAssociatedObject(av.view, IndexPropertyKey, [NSNumber numberWithUnsignedInteger:self.annotationIndex++], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         return av;
     } outputIsNewView: &isNew];
     if (isNew) {
         [self.mapView addAnnotation:av.annotation];
-    }else{
-        [self.mapView bringSubviewToFront:av.view];
     }
     if (resultBlock != nil) {
         return resultBlock(av.annotation, av.view);
@@ -418,7 +463,6 @@ static void* MapViewCustomAnnotation = &MapViewCustomAnnotation;
         return nil;
     }
 }
-
 
 //- (MKOverlayRenderer *)mapView:(MKMapView *)mapView rendererForOverlay:(id<MKOverlay>)overlay
 //{

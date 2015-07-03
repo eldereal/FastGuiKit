@@ -46,6 +46,8 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
 
 @property (nonatomic, strong) UIView *previousView;
 
+@property (nonatomic) NSUInteger subviewIndex;
+
 @end
 
 @implementation FastGui (FGViewGroup)
@@ -98,6 +100,7 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
 + (void)beginGroupWithReuseId: (NSString *) reuseId styleClass:(NSString *)styleClass isCustom: (BOOL) isCustom layoutMode: (FGViewGroupLayoutMode) mode
 {
     FGViewGroup *group = [[FGViewGroup alloc] init];
+    group.subviewIndex = 0;
     group.groupView = nil;
     group.mode = mode;
     [self pushContext: group];
@@ -125,6 +128,8 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
 @implementation FGViewGroup
 
 @synthesize parentContext;
+
+static void * IndexPropertyKey = &IndexPropertyKey;
 
 - (void)reloadGui
 {
@@ -226,10 +231,9 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
     }else{
         BOOL isNew;
         UIView *view = (UIView *)[self.groupView.pool updateItem:reuseId initBlock:initBlock outputIsNewView: &isNew];
+        objc_setAssociatedObject(view, IndexPropertyKey, [NSNumber numberWithUnsignedInteger:self.subviewIndex ++], OBJC_ASSOCIATION_RETAIN_NONATOMIC);
         if (isNew) {
             [self.groupView addSubview:view];            
-        }else{
-            [self.groupView bringSubviewToFront:view];
         }
         if (self.mode == FGViewGroupLayoutModeVertical) {
             [self setAndOverrideVerticalLayouts: view];
@@ -269,6 +273,30 @@ typedef NS_ENUM(NSUInteger, FGViewGroupLayoutMode)
         [self.groupView.pool finishUpdateItems:nil needRemove:^(UIView *view) {
             [view removeFromSuperview];
         }];
+    }
+    NSArray *subviews = self.groupView.subviews;
+    for (int i=0; i<subviews.count; i++) {
+        NSNumber *index = objc_getAssociatedObject(subviews[i], IndexPropertyKey);
+        if (index == nil) {
+            continue;
+        }
+        NSUInteger minIndex = index.unsignedIntegerValue;
+        int minJ = i;
+        for (int j=i+1; j<subviews.count; j++) {
+            NSNumber *jindex = objc_getAssociatedObject(subviews[j], IndexPropertyKey);
+            if (jindex == nil) {
+                continue;
+            }
+            NSUInteger index = jindex.unsignedIntegerValue;
+            if (index < minIndex) {
+                minIndex = index;
+                minJ = j;
+            }
+        }
+        if (minJ != i) {
+            [self.groupView exchangeSubviewAtIndex:i withSubviewAtIndex:minJ];
+            subviews = self.groupView.subviews;
+        }
     }
     [FastGui popContext];
 }

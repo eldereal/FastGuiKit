@@ -135,6 +135,9 @@ static NSString *_styleClassRaw;
 
 + (void) reloadGuiProtectContext
 {
+    if ([UIApplication sharedApplication].applicationState == UIApplicationStateBackground) {
+        return;
+    }
     NSLog(@"Reload gui");
     id ctx = self.context;
     [self.context reloadGui];
