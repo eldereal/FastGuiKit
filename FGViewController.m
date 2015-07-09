@@ -72,11 +72,6 @@
     _automaticallyAdjustsScrollViewInsets = automaticallyAdjustsScrollViewInsets;
 }
 
-- (BOOL) extendToFullScreen
-{
-    return NO;
-}
-
 @synthesize parentContext;
 
 - (instancetype)initWithOnGuiBlock:(FGOnGuiBlock)block styleClass: (NSString *) styleClass
@@ -107,12 +102,18 @@
     } resultBlock:^id(UIView *view) {
         return view;
     }];
-    
-    if (self.extendToFullScreen) {
+    BOOL extendTop = (self.edgesForExtendedLayout & UIRectEdgeTop) == UIRectEdgeTop
+    && (!self.navigationController.navigationBar.opaque || self.extendedLayoutIncludesOpaqueBars);
+    BOOL extendBottom = (self.edgesForExtendedLayout & UIRectEdgeBottom) == UIRectEdgeBottom
+    && (!self.tabBarController.tabBar.opaque || self.extendedLayoutIncludesOpaqueBars);
+    if(extendTop){
         layoutView.topConstraint = [self.view updateConstraint:layoutView.topConstraint view1:layoutView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeTop multiplier:1 constant:0];
-        layoutView.bottomConstraint = [self.view updateConstraint:layoutView.bottomConstraint view1:layoutView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
     }else{
         layoutView.topConstraint = [self.view updateConstraint:layoutView.topConstraint view1:layoutView attribute:NSLayoutAttributeTop relatedBy:NSLayoutRelationEqual toItem:self.topLayoutGuide attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+    }
+    if (extendBottom) {
+        layoutView.bottomConstraint = [self.view updateConstraint:layoutView.bottomConstraint view1:layoutView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeBottom multiplier:1 constant:0];
+    }else{
         layoutView.bottomConstraint = [self.view updateConstraint:layoutView.bottomConstraint view1:layoutView attribute:NSLayoutAttributeBottom relatedBy:NSLayoutRelationEqual toItem:self.bottomLayoutGuide attribute:NSLayoutAttributeTop multiplier:1 constant:0];
     }
     layoutView.leftConstraint = [self.view updateConstraint:layoutView.leftConstraint view1:layoutView attribute:NSLayoutAttributeLeft relatedBy:NSLayoutRelationEqual toItem:self.view attribute:NSLayoutAttributeLeft multiplier:1 constant:0];
