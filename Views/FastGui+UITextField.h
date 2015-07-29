@@ -64,6 +64,8 @@ typedef NS_ENUM(NSUInteger, FGTextFieldUpdate)
 
 + (void) textFieldPadding: (UIEdgeInsets) padding;
 
-+ (void) textFieldKeyboardType:(UIKeyboardType) type;
++ (void) textFieldKeyboardType: (UIKeyboardType) type;
+
++ (void) textFieldPatternColors: (NSDictionary *) patternColors;
 
 @end

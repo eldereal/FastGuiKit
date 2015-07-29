@@ -10,19 +10,6 @@
 
 @implementation UITextField (FGStylable)
 
-- (void)styleWithColor:(UIColor *)color
-{
-    self.textColor = color;
-}
 
-- (void)styleWithFontSize:(NSNumber *)fontSize
-{
-    self.font = [self.font fontWithSize: [fontSize floatValue]];
-}
-
-- (void)styleWithTextAlign:(NSTextAlignment)textAlign
-{
-    self.textAlignment = textAlign;
-}
 
 @end

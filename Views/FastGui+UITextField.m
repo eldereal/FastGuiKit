@@ -13,7 +13,7 @@
 #import "FGStyle.h"
 #import "UIView+changingResult.h"
 
-@interface FGTextField : UITextField
+@interface FGTextField : UITextField<FGStylable>
 
 @property (nonatomic, assign) BOOL becomeFirstResponderOnStart;
 
@@ -34,6 +34,9 @@
 @property (nonatomic, weak) UIView *dismissRecognizerHolder;
 
 @property (nonatomic, assign) UIEdgeInsets edgeInsets;
+
+@property (nonatomic, strong) NSDictionary * regexColors;
+@property (nonatomic, strong) UIColor * baseTextColor;
 
 @end
 
@@ -135,6 +138,8 @@
 
 @implementation FGTextField
 
+@synthesize regexColors = _regexColors;
+
 - (instancetype)init
 {
     self = [super init];
@@ -148,6 +153,7 @@
 }
 
 - (void) textDidChange{
+    [self updatePatternColor];
     if (self.updateGuiOnChange) {
         [self reloadGuiChangingResult:self.text];
     }
@@ -230,6 +236,41 @@
     return [super resignFirstResponder];
 }
 
+- (void) updatePatternColor
+{
+    for (NSRegularExpression *exp in self.regexColors.keyEnumerator) {
+        UIColor * color = self.regexColors[exp];
+        NSTextCheckingResult * match = [exp firstMatchInString:self.text options:0 range:NSMakeRange(0, self.text.length)];
+        if (match != nil && match.range.location == 0 && match.range.length == self.text.length) {
+            self.textColor = color;
+            return;
+        }
+    }
+    self.textColor = self.baseTextColor;
+}
+
+- (void)setRegexColors:(NSDictionary *)regexColors
+{
+    _regexColors = regexColors;
+    [self updatePatternColor];
+}
+
+- (void)styleWithColor:(UIColor *)color
+{
+    self.textColor = color;
+    self.baseTextColor = color;
+}
+
+- (void)styleWithFontSize:(NSNumber *)fontSize
+{
+    self.font = [self.font fontWithSize: [fontSize floatValue]];
+}
+
+- (void)styleWithTextAlign:(NSTextAlignment)textAlign
+{
+    self.textAlignment = textAlign;
+}
+
 @end
 
 @implementation FGStyle(UITextField)
@@ -288,6 +329,15 @@
                     [((UITextField *) view) becomeFirstResponder];
                 }
             }
+        }
+    }];
+}
+
++ (void)textFieldPatternColors:(NSDictionary *)patternColors
+{
+    [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[FGTextField class]]) {
+            ((FGTextField *) view).regexColors = patternColors;
         }
     }];
 }
