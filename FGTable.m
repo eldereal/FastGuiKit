@@ -913,6 +913,10 @@ static void * IsHeaderPropertyKey = &IsHeaderPropertyKey;
 + (void) tableCellHasSeparator:(BOOL)hasSeparator
 {
     [FGStyle customStyleWithBlock:^(UIView *view) {
+        if ([view isKindOfClass:[UITableView class]]) {
+            
+            ((UITableView *)view).separatorStyle = hasSeparator? UITableViewCellSeparatorStyleSingleLine : UITableViewCellSeparatorStyleNone;
+        }
         if ([view respondsToSelector:@selector(tableCellHasSeparator:)]) {
             [(id<StyleWithHasSeparator>) view tableCellHasSeparator:hasSeparator];
         }

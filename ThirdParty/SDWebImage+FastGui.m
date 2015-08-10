@@ -52,8 +52,10 @@
         }
         if (autoAspect) {
             [img sd_setImageWithURL:url placeholderImage:placeHolderImage completed:^(UIImage *image, NSError *error, SDImageCacheType cacheType, NSURL *imageURL) {
+                if (!image) {
+                    return;
+                }
                 float aspect = image.size.height / image.size.width;
-                
                 img.aspectConstraint = [img updateConstraint:img.aspectConstraint view1:img attribute:NSLayoutAttributeHeight relatedBy:NSLayoutRelationEqual toItem:img attribute:NSLayoutAttributeWidth multiplier:aspect constant:0 priority:UILayoutPriorityDefaultLow - 1];
             }];
         }else{
