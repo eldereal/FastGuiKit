@@ -13,6 +13,8 @@
 
 @property (nonatomic, strong) NSArray * styleSheets;
 
+@property (nonatomic) BOOL isolated;
+
 @end
 
 static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
@@ -21,13 +23,24 @@ static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
 
 + (void)beginUseStyleSheet:(id<FGStyleSheet>)styleSheet
 {
-    [self beginUseStyleSheets:@[styleSheet]];
+    [self beginUseStyleSheets:@[styleSheet] isolated:NO];
+}
+
++ (void)beginUseStyleSheet:(id<FGStyleSheet>)styleSheet isolated: (BOOL) isolated
+{
+    [self beginUseStyleSheets:@[styleSheet] isolated:isolated];
 }
 
 + (void)beginUseStyleSheets:(NSArray *)styleSheets
 {
+    [self beginUseStyleSheets:styleSheets isolated:NO];
+}
+
++ (void)beginUseStyleSheets:(NSArray *)styleSheets isolated: (BOOL) isolated
+{
     FGPushStyleSheetContext *ctx = [[FGPushStyleSheetContext alloc] init];
     ctx.styleSheets = styleSheets;
+    ctx.isolated = isolated;
     [FastGui pushContext: ctx];
 }
 
@@ -35,7 +48,14 @@ static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
 {
     id styleSheet = [[NSObject alloc] init];
     [styleSheet respondsToSelector:@selector(styleSheet) withKey:nil usingBlock:styleSheetBlock];
-    [self beginUseStyleSheet:styleSheet];
+    [self beginUseStyleSheets:@[styleSheet] isolated:NO];
+}
+
++ (void)beginUseStyleSheetWithBlock:(FGVoidBlock)styleSheetBlock isolated: (BOOL) isolated
+{
+    id styleSheet = [[NSObject alloc] init];
+    [styleSheet respondsToSelector:@selector(styleSheet) withKey:nil usingBlock:styleSheetBlock];
+    [self beginUseStyleSheets:@[styleSheet] isolated:isolated];
 }
 
 + (void)endUseStyleSheet
@@ -82,7 +102,9 @@ static void * EndUseStyleSheetsMethodKey = &EndUseStyleSheetsMethodKey;
 
 - (void)styleSheet
 {
-    [parentContext styleSheet];
+    if (!self.isolated) {
+        [parentContext styleSheet];
+    }
     for (id<FGStyleSheet> stylesheet in self.styleSheets) {
         [stylesheet styleSheet];
     }

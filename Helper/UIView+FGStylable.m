@@ -84,6 +84,7 @@ static void* TopConstraintPropertyKey = &TopConstraintPropertyKey;
 static void* BottomConstraintPropertyKey = &BottomConstraintPropertyKey;
 static void* WidthConstraintPropertyKey = &WidthConstraintPropertyKey;
 static void* HeightConstraintPropertyKey = &HeightConstraintPropertyKey;
+static void* AspectRatioConstraintPropertyKey = &AspectRatioConstraintPropertyKey;
 static void* HorizontalCenterConstraintPropertyKey = &HorizontalCenterConstraintPropertyKey;
 static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintPropertyKey;
 
@@ -194,6 +195,19 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 - (NSLayoutConstraint *)heightConstraint
 {
     return objc_getAssociatedObject(self, HeightConstraintPropertyKey);
+}
+
+- (void)setAspectRatioConstraint:(NSLayoutConstraint *)aspectRatioConstraint
+{
+    if(aspectRatioConstraint == nil){
+        [self.aspectRatioConstraint removeConstraint];
+    }
+    objc_setAssociatedObject(self, AspectRatioConstraintPropertyKey, aspectRatioConstraint, OBJC_ASSOCIATION_ASSIGN);
+}
+
+- (NSLayoutConstraint *)aspectRatioConstraint
+{
+    return objc_getAssociatedObject(self, AspectRatioConstraintPropertyKey);
 }
 
 - (void)setHorizontalCenterConstraint:(NSLayoutConstraint *)horizontalCenterConstraint
@@ -311,6 +325,16 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
         }else{
             self.heightConstraint = nil;
         }
+    }
+}
+
+- (void)styleWithAspectRatio:(CGFloat)aspectRatio
+{
+    [self setTranslatesAutoresizingMaskIntoConstraints:NO];
+    if (!isnan(aspectRatio)) {
+        self.aspectRatioConstraint = [self updateConstraint:self.aspectRatioConstraint view1:self attribute:NSLayoutAttributeWidth relatedBy:NSLayoutRelationEqual toItem:self attribute:NSLayoutAttributeHeight multiplier:aspectRatio constant:0];
+    }else{
+        self.aspectRatioConstraint = nil;
     }
 }
 
@@ -453,6 +477,16 @@ static void* VerticalCenterConstraintPropertyKey = &VerticalCenterConstraintProp
 - (void)dispatchAfterUpdateStyle:(FGVoidBlock)block
 {
     [self.finishUpdateStyleCallbacks addObject:[FGVoidBlockHolder holderWithBlock:block]];
+}
+
+- (void) styleWithTransform:(CGAffineTransform)transform
+{
+    self.transform = transform;
+}
+
+- (void)styleWithTransformOrigin:(CGPoint)transformOrigin
+{
+    self.layer.anchorPoint = transformOrigin;
 }
 
 - (void)styleWithTransition:(CGFloat)duration

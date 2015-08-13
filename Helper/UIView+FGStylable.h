@@ -17,6 +17,7 @@
 @property (nonatomic, weak) NSLayoutConstraint *bottomConstraint;
 @property (nonatomic, weak) NSLayoutConstraint *widthConstraint;
 @property (nonatomic, weak) NSLayoutConstraint *heightConstraint;
+@property (nonatomic, weak) NSLayoutConstraint *aspectRatioConstraint;
 @property (nonatomic, weak) NSLayoutConstraint *horizontalCenterConstraint;
 @property (nonatomic, weak) NSLayoutConstraint *verticalCenterConstraint;
 

@@ -88,6 +88,11 @@ static UIView *_view;
     tryPerformSelectorWithObject(styleWithWidth, width);
 }
 
++ (void)aspectRatio:(CGFloat)aspectRatio
+{
+    tryPerformSelectorWithObject(styleWithAspectRatio, aspectRatio);
+}
+
 + (void)topPercentage:(CGFloat)topPercentage
 {
     tryPerformSelectorWithObject(styleWithTopPercentage, topPercentage);
@@ -236,6 +241,16 @@ static UIView *_view;
 + (void)opacity:(CGFloat)opacity
 {
     tryPerformSelectorWithObject(styleWithOpacity, opacity);
+}
+
++ (void) transform: (CGAffineTransform) transform
+{
+    tryPerformSelectorWithObject(styleWithTransform, transform);
+}
+
++ (void) transformOrigin:(CGPoint)transformOrigin
+{
+    tryPerformSelectorWithObject(styleWithTransformOrigin, transformOrigin);
 }
 
 + (void)transition:(CGFloat)duration

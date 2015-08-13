@@ -37,6 +37,8 @@ typedef NS_ENUM(NSUInteger, FGStyleOverflow)
 
 - (void) styleWithHeight: (CGFloat) height;
 
+- (void) styleWithAspectRatio: (CGFloat) aspectRatio;
+
 - (void) styleWithHorizontalCenter: (CGFloat) horizontalCenter;
 
 - (void) styleWithVerticalCenter: (CGFloat) verticalCenter;
@@ -79,6 +81,10 @@ typedef NS_ENUM(NSUInteger, FGStyleOverflow)
 
 - (void) styleWithHidden: (CGFloat) hidden;
 
+- (void) styleWithTransform: (CGAffineTransform) transform;
+
+- (void) styleWithTransformOrigin: (CGPoint) transformOrigin;
+
 - (void) styleWithTransition: (CGFloat) duration;
 
 - (void) beginUpdateStyle;
@@ -108,6 +114,8 @@ typedef NS_ENUM(NSUInteger, FGStyleOverflow)
 + (void) width: (CGFloat) width;
 
 + (void) height: (CGFloat) height;
+
++ (void) aspectRatio: (CGFloat) aspectRatio;
 
 + (void) top: (CGFloat) top right: (CGFloat) right bottom: (CGFloat) bottom left: (CGFloat) left;
 
@@ -168,6 +176,10 @@ typedef NS_ENUM(NSUInteger, FGStyleOverflow)
 + (void) hidden: (BOOL) hidden;
 
 + (void) opacity: (CGFloat) opacity;
+
++ (void) transform: (CGAffineTransform) transform;
+
++ (void) transformOrigin: (CGPoint) transformOrigin;
 
 + (void) transition: (CGFloat) duration;
 

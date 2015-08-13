@@ -15,6 +15,8 @@
 
 + (void) beginUseStyleSheetWithBlock:(FGVoidBlock) styleSheet;
 
++ (void)beginUseStyleSheetWithBlock:(FGVoidBlock)styleSheetBlock isolated: (BOOL) isolated;
+
 + (void) beginUseStyleSheets:(NSArray *) styleSheets;
 
 + (void) endUseStyleSheet;
